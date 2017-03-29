@@ -4,3 +4,6 @@ python:
 install: "pip install -r requirements.txt"
 # command to run tests
 script: py.test
+addons:
+    code_climate:
+        repo_token: a00ccb2d460c2ac5bef6ae074c91b2f3f521a7540424a8f851113a8f1d1f7fcd
