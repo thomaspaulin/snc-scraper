@@ -1,7 +1,7 @@
 # snc-scraper
 [![Build Status](https://travis-ci.org/thomaspaulin/snc-scraper.svg?branch=master)](https://travis-ci.org/thomaspaulin/snc-scraper)
 
-Scraping the Auckland SNC Hockey website one symbol at a time.
+Scraping the Auckland SNC Hockey website one symbol at a time. (http://www.aucklandsnchockey.com)
 
 ## Setup
 This repository uses Scrapy and Python3. To get set up do the following:
