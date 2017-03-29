@@ -1,5 +1,6 @@
 # snc-scraper
 [![Build Status](https://travis-ci.org/thomaspaulin/snc-scraper.svg?branch=master)](https://travis-ci.org/thomaspaulin/snc-scraper)
+[![Code Climate](https://codeclimate.com/github/thomaspaulin/snc-scraper/badges/gpa.svg)](https://codeclimate.com/github/thomaspaulin/snc-scraper)
 
 Scraping the Auckland SNC Hockey website one symbol at a time.
 
