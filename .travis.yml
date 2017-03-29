@@ -4,8 +4,3 @@ python:
 install: "pip install -r requirements.txt"
 # command to run tests
 script: py.test
-after_sucess:
-  - codeclimate-test-reporter
-addons:
-    code_climate:
-        secure: "eqXuYP/4pp+CPb5tQ69Szti77Bkb7erF1dBNfYMUHyyuLDNmZZa/4xs6P6Ff3NAiJmOai7I94Rsrtt1zKAHFKwoztUxZqPoemWS47rw5dNHV9/A37nsCjmhacx1N8myilb2NWor1jdqo2R7TTu6Mrwe6zacYqLs6VHjW7MRV2H6/XlvNvV6FDiXNwy4BL/ZLNwOnmiF1LpfmsB/Q7krhPuEtmoS48dqgxnSTjoOxU0pYhQ4jreuNrVxero09+B5XmVj0KPCUf6PFSLTvT2PN6v5U6jRTTa9r76ve+hmZrEwTIYyhPuZ9cICXOxEE9u/7VgI5mbaI61dvVXrb4Y5KmKkSu4namadhOXPAxH8bkocU+KF3v5dDB0GYJVEpuXNnEvH+I2x/meJ8CgsAKiwMtGTKwUSvkanvuph1MUodjogFT9iGmQgY779y8785cLELDpKImctyV59FNqBC0RU9GbNRwLembX7MG9T+W2nUwgtTV0VcJUflqfp1624mNtqjMJyzAUIVIcCyzyr6iOjSWYHZxxmt77K2/Y6+TZjQl48N2jdATfGXAHDuN77bv27mSiJSJ/tISoEa49XHAwTx7AiA10pcKZvkiQI1J82xsnRp3n12tymyDiKJqnMw0n4WIlrTC4rMuYv/t9svnVW9mYcTE8PsoAUHSbwmc/Bpnss="
