@@ -2,7 +2,6 @@ import bs4
 from bs4 import BeautifulSoup
 import schedule_util
 from match import Match
-#TODO import Match class somehow
 
 def parse_score(score_elem):
     """Returns the score parsed from the provided bs4 Tag or -1 if there wasn't one"""
