@@ -20,7 +20,16 @@ class Match:
         home_score      The home team's score. None if the game hasn't been played
         rink            Where the match was played
     """
-    def __init__(self, *, game_type=MatchType.REGULAR_SEASON, season=datetime.utcnow().year, start=datetime.utcnow(), away, home, away_score=None, home_score=None, rink):
+    def __init__(self,
+            *,
+            game_type=MatchType.REGULAR_SEASON,
+            season=datetime.utcnow().year,
+            start=datetime.utcnow(),
+            away,
+            home,
+            away_score=None,
+            home_score=None,
+            rink):
         self.game_type = game_type
         self.season = season
         self.start = start
@@ -31,8 +40,15 @@ class Match:
         self.rink = rink
 
     def __str__(self):
-        return '{},{},{},{},{},{},{},{}'.format(self.game_type, self.season, self.start, self.away, self.home,
-                                                self.away_score, self.home_score, self.rink)
+        return '{},{},{},{},{},{},{},{}'.format(
+                                            self.game_type,
+                                            self.season,
+                                            self.start,
+                                            self.away,
+                                            self.home,
+                                            self.away_score,
+                                            self.home_score,
+                                            self.rink)
 
     def __repr__(self):
         return self.__str__()
@@ -60,6 +76,13 @@ class Match:
                 awayscore = tokens[5]
                 homescore = tokens[6]
                 rink = tokens[7]
-                m = Match(gametype=gametype, season=season, start=start, away=away, home=home, awayscore=awayscore,
-                          homescore=homescore, rink=rink)
+                m = Match(
+                        gametype=gametype,
+                        season=season,
+                        start=start,
+                        away=away,
+                        home=home,
+                        awayscore=awayscore,
+                        homescore=homescore,
+                        rink=rink)
                 matches.append(m)
