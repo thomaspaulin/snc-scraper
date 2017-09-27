@@ -1,13 +1,6 @@
 from bs4 import BeautifulSoup
 from team import Team
-
-def capitalise(string):
-    words = string.strip().lower().split(' ')
-    upper_words = []
-    for word in words:
-        print(word[0:1].upper() + word[1:])
-        upper_words.append(word[0:1].upper() + word[1:])
-    return ' '.join(upper_words)
+import parsing_utils
 
 def parse_name(name_wrapper_elem):
     return name_wrapper_elem.select('span')[0].contents[0]
@@ -25,7 +18,7 @@ def parse_record(record_wrapper_elem):
 def parse_team(team_elem, division):
     rows = team_elem.select('tr')
     # row 1 is logo, name, and links to stats, roster, and staff/personnel
-    name = capitalise(parse_name(rows[0].select('td')[1]))
+    name = parsing_utils.capitalise(parse_name(rows[0].select('td')[1]))
     logo_url = parse_logo(rows[0].select('td')[0])
     # row 2 is current record and next home game
     record = parse_record(rows[1].select('td')[1])
