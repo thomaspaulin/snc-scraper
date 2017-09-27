@@ -1,21 +1,42 @@
 class Match:
-    """
-    Available keyword args:
-        gametype, season, start, away, home, awayscore, homescore, rink
+    """A hockey match
+
+    Attributes:
+        game_type       The game's type. Typically practice, regular season, or
+                        playoff. PR, RO, and PO respectively
+        season          The season the match is in
+        start           The datetime at which the match starts, in UTC
+        away            The away team
+        home            The home team
+        away_score      The away team's score. -1 if the game hasn't been played
+        home_score      The home team's score. -1 if the game hasn't been played
+        rink            Where the match was played
+
+    Keyword Args:
+        Argument        Corresponding Field
+        ------------------------------------------------------------------------
+        gametype        game_type
+        season          season
+        start           start
+        away            away
+        home            home
+        awayscore       away_score
+        homescore       home_score
+        rink            rink
     """
     def __init__(self, **kwargs):
-        self.gametype = kwargs.pop('gametype', None)
+        self.game_type = kwargs.pop('gametype', None)
         self.season = kwargs.pop('season', None)
         self.start = kwargs.pop('start', None)
         self.away = kwargs.pop('away', None)
         self.home = kwargs.pop('home', None)
-        self.awayscore = kwargs.pop('awayscore', None)
-        self.homescore = kwargs.pop('homescore', None)
+        self.away_score = kwargs.pop('awayscore', None)
+        self.home_score = kwargs.pop('homescore', None)
         self.rink = kwargs.pop('rink', None)
 
     def __str__(self):
-        return '{},{},{},{},{},{},{},{}'.format(self.gametype, self.season, self.start, self.away, self.home,
-                                                self.awayscore, self.homescore, self.rink)
+        return '{},{},{},{},{},{},{},{}'.format(self.game_type, self.season, self.start, self.away, self.home,
+                                                self.away_score, self.home_score, self.rink)
 
     def __repr__(self):
         return self.__str__()
