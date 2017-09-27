@@ -24,4 +24,4 @@ class Team:
         return '{} {}'.format(self.name, self.record)
 
     def __repr__(self):
-        return '{}, {}, {}'.format(self.name, self.logo_url, self.record)
+        return '{}, {}, {} - {}pts'.format(self.name, self.logo_url, self.record, self.points)
