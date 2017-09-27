@@ -1,4 +1,5 @@
 from enum import Enum
+from datetime import time
 
 class Goal:
     """Represents a Goal
@@ -11,7 +12,7 @@ class Goal:
                     period
         scorer      The name of the player who scored the goal
         assisted_by The names of the players who assisted in the goal. Up to two
-                    players can be listed. None means unassisted
+                    players can be listed. [] means unassisted
     """
     def __init__(self,
             *,
@@ -20,7 +21,7 @@ class Goal:
             period,
             time,
             scorer,
-            assisted_by=None):
+            assisted_by=[]):
         self.type = type
         self.period = period
         self.team = team
