@@ -1,3 +1,11 @@
+from enum import Enum
+from datetime import datetime
+
+class MatchType(Enum):
+    PRACTICE = 'PR'
+    REGULAR_SEASON = 'RS'
+    PLAYOFF = 'PO'
+
 class Match:
     """A hockey match
 
@@ -8,31 +16,19 @@ class Match:
         start           The datetime at which the match starts, in UTC
         away            The away team
         home            The home team
-        away_score      The away team's score. -1 if the game hasn't been played
-        home_score      The home team's score. -1 if the game hasn't been played
+        away_score      The away team's score. None if the game hasn't been played
+        home_score      The home team's score. None if the game hasn't been played
         rink            Where the match was played
-
-    Keyword Args:
-        Argument        Corresponding Field
-        ------------------------------------------------------------------------
-        gametype        game_type
-        season          season
-        start           start
-        away            away
-        home            home
-        awayscore       away_score
-        homescore       home_score
-        rink            rink
     """
-    def __init__(self, **kwargs):
-        self.game_type = kwargs.pop('gametype', None)
-        self.season = kwargs.pop('season', None)
-        self.start = kwargs.pop('start', None)
-        self.away = kwargs.pop('away', None)
-        self.home = kwargs.pop('home', None)
-        self.away_score = kwargs.pop('awayscore', None)
-        self.home_score = kwargs.pop('homescore', None)
-        self.rink = kwargs.pop('rink', None)
+    def __init__(self, *, game_type=MatchType.REGULAR_SEASON, season=datetime.utcnow().year, start=datetime.utcnow(), away, home, away_score=None, home_score=None, rink):
+        self.game_type = game_type
+        self.season = season
+        self.start = start
+        self.away = away
+        self.home = home
+        self.away_score = away_score
+        self.home_score = home_score
+        self.rink = rink
 
     def __str__(self):
         return '{},{},{},{},{},{},{},{}'.format(self.game_type, self.season, self.start, self.away, self.home,

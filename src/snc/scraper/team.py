@@ -14,11 +14,11 @@ class Team:
     """
     __pointAllocation = (3, 0, 1)
 
-    def __init__(self, **kwargs):
-        self.name = kwargs.pop('name', None)
-        self.logo_url = kwargs.pop('logo_url', None)
-        self.record = kwargs.pop('record', (0, 0, 0))
-        self.points =
+    def __init__(self, *, name, logo_url, record=(0, 0, 0), points=0):
+        self.name = name
+        self.logo_url = logo_url
+        self.record = record
+        self.points = record[0] * __pointAllocation[0] + record[1] * __pointAllocation[1] + record[2] * __pointAllocation[2]
 
     def __str__(self):
         return '{} {}'.format(self.name, self.record)

@@ -2,6 +2,7 @@ import bs4
 from bs4 import BeautifulSoup
 import schedule_util
 from match import Match
+from match import MatchType
 
 def parse_score(score_elem):
     """Returns the score parsed from the provided bs4 Tag or -1 if there wasn't one"""
@@ -48,13 +49,13 @@ def parse_row(row_elem):
         home_score = parse_score(tds[6].contents[0])
         rink = parse_rink(tds[7].contents[0])
 
-        return Match(gametype=game_type_acronym,
+        return Match(game_type=MatchType['game_type_acronym'],
                      season=date.year,
                      start=date,
                      away=away,
                      home=home,
-                     awayscore=away_score,
-                     homescore=home_score,
+                     away_score=away_score,
+                     home_score=home_score,
                      rink=rink);
     else:
         return None
