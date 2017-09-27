@@ -9,10 +9,10 @@ class Player:
     Other information coming later
     """
     def __init__(self,
-            *,
-            number,
-            name,
-            position):
+                 *,
+                 number,
+                 name,
+                 position):
         self.number = number
         self.name = name
         self.position = position
@@ -22,6 +22,7 @@ class Player:
 
     def __repr__(self):
         return self.__str__()
+
 
 class Goalie:
     """A goalie
@@ -33,9 +34,9 @@ class Goalie:
     Other informatin coming later
     """
     def __init__(self,
-            *,
-            number,
-            name):
+                 *,
+                 number,
+                 name):
         self.number = number
         self.name = name
 

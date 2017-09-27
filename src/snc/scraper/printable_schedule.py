@@ -4,8 +4,10 @@ import schedule_util
 from match import Match
 from match import MatchType
 
+
 def parse_score(score_elem):
-    """Returns the score parsed from the provided bs4 Tag or -1 if there wasn't one"""
+    """Returns the score parsed from the provided bs4 Tag or -1 if there
+    wasn't one"""
     if isinstance(score_elem, bs4.element.Tag):
         score_elem = score_elem.contents[0]
     try:
@@ -18,6 +20,7 @@ def parse_score(score_elem):
             # no score
             return -1
 
+
 def parse_team(team_elem):
     """Returns the team name parsed from the provided bs4 Tag"""
     if isinstance(team_elem, bs4.element.Tag):
@@ -27,21 +30,26 @@ def parse_team(team_elem):
     except TypeError:
         return team_elem.select('b')[0].contents[0].strip()
 
+
 def parse_rink(rink_elem):
     if isinstance(rink_elem, bs4.element.Tag):
         rink_elem = rink_elem.contents[0]
     return rink_elem.strip()[:-5]
 
-def parse_row(row_elem):
-    tds = row_elem.select('td');
 
-    # Playoff rows have these header ones before them to indicate which game they are
+def parse_row(row_elem):
+    tds = row_elem.select('td')
+
+    # Playoff rows have these header ones before them to indicate which
+    # game they are
     is_match_row = len(tds[0].select('img')) is 0
     if is_match_row:
         game_type_acronym = tds[0].select('font')[0].contents[0].strip()
 
         # In the format SA 18-Mar-2017 4:30P
-        date = schedule_util.parse_date(tds[1].contents[0].strip() + ' ' + tds[2].contents[0].strip())
+        date = schedule_util.parse_date(tds[1].contents[0].strip()
+                                        + ' '
+                                        + tds[2].contents[0].strip())
         # practice and regular season
         away = parse_team(tds[3].contents[0])
         away_score = parse_score(tds[4].contents[0])
@@ -56,20 +64,24 @@ def parse_row(row_elem):
                      home=home,
                      away_score=away_score,
                      home_score=home_score,
-                     rink=rink);
+                     rink=rink)
     else:
         return None
 
-# For parsing http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1
+
 class PrintableScheduleParser:
+    """
+    For parsing
+    http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1
+    """
     def __init__(self, schedule_page_soup):
         self.soup = schedule_page_soup
 
     def parse(self):
         """Returns the season schedule that was able to be parsed"""
-        parsed_matches = [];
+        parsed_matches = []
         rows = self.soup.select('table tr')
         # First 6 are headers
         for row in rows[6:-1]:
             parsed_matches.append(parse_row(row))
-        return parsed_matches;
+        return parsed_matches

@@ -13,13 +13,13 @@ class Penalty:
         pim         Penalty incurred minutes
     """
     def __init__(self,
-            *,
-            offense,
-            period,
-            time,
-            team,
-            offender,
-            pim=2):
+                 *,
+                 offense,
+                 period,
+                 time,
+                 team,
+                 offender,
+                 pim=2):
         self.offense = offense
         self.period = period
         self.time = time

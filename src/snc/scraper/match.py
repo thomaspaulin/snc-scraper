@@ -1,35 +1,37 @@
 from enum import Enum
 from datetime import datetime
 
+
 class MatchType(Enum):
     PRACTICE = 'PR'
     REGULAR_SEASON = 'RS'
     PLAYOFF = 'PO'
 
+
 class Match:
     """A hockey match
 
     Attributes:
-        game_type       The game's type. Typically practice, regular season, or
-                        playoff. PR, RO, and PO respectively
-        season          The season the match is in
-        start           The datetime at which the match starts, in UTC
-        away            The away team
-        home            The home team
-        away_score      The away team's score. None if the game hasn't been played
-        home_score      The home team's score. None if the game hasn't been played
-        rink            Where the match was played
+        game_type   The game's type. Typically practice, regular season, or
+                    playoff. PR, RO, and PO respectively
+        season      The season the match is in
+        start       The datetime at which the match starts, in UTC
+        away        The away team
+        home        The home team
+        away_score  The away team's score. None if the game hasn't been played
+        home_score  The home team's score. None if the game hasn't been played
+        rink        Where the match was played
     """
     def __init__(self,
-            *,
-            game_type=MatchType.REGULAR_SEASON,
-            season=datetime.utcnow().year,
-            start=datetime.utcnow(),
-            away,
-            home,
-            away_score=None,
-            home_score=None,
-            rink):
+                 *,
+                 game_type=MatchType.REGULAR_SEASON,
+                 season=datetime.utcnow().year,
+                 start=datetime.utcnow(),
+                 away,
+                 home,
+                 away_score=None,
+                 home_score=None,
+                 rink):
         self.game_type = game_type
         self.season = season
         self.start = start

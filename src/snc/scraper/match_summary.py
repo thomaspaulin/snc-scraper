@@ -22,19 +22,19 @@ class MatchSummary:
             goalies         The goalies indexed by team
     """
     def __init__(self,
-            *,
-            start,
-            rink
-            away
-            home
-            away_score=0
-            home_score=0,
-            goals=[],
-            shots=[],
-            power_plays=[],
-            penalties=[],
-            players=[],
-            goalies=[]):
+                 *,
+                 start,
+                 rink
+                 away
+                 home
+                 away_score=0
+                 home_score=0,
+                 goals=[],
+                 shots=[],
+                 power_plays=[],
+                 penalties=[],
+                 players=[],
+                 goalies=[]):
         self.start = start
         self.rink = rink
         self.away = away
