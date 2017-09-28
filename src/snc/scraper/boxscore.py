@@ -7,6 +7,7 @@ import time
 from players import Goalie, Player
 from parsing_utils import capitalise, parse_date, parse_int
 from match_summary import MatchSummary
+from penalty import Penalty
 
 
 def parse_teams(elem):
@@ -63,6 +64,8 @@ def parse_by_period(table_rows):
             raise ValueError('Shots by period did not match the declared total'
                              '({} vs. {})'.format(expected_total, actual_total))
         else:
+            print('by period:')
+            print(by_period)
             by_team_by_period[team] = by_period
     return by_team_by_period
 
@@ -81,7 +84,7 @@ def parse_goals(by_period_elem, scoring_summary_elem, away, home):
     by_period = parse_by_period(by_period_elem.select('tr'))
     away_by_period = by_period[away.lower()]
     home_by_period = by_period[home.lower()]
-    # TODO parse the scoring summary
+    # TODO parse the scoring summary and make the return type a list of goals by team
     return by_period
 
 
@@ -131,7 +134,51 @@ def parse_rink(rink_str):
 def parse_penalties(elem):
     """Returns the penalties indexed by team"""
     # TODO
-    pass
+    rows = elem.select('tr')
+    current_period = 1
+    penalties = {}
+    for row in rows[1:]:
+        cells = row.select('td')
+        try:
+            # Header row
+            row_contents = cells[0].contents[0].contents[0].strip()
+        except AttributeError:
+            # Penalty rows have a \n at the 0th index
+            row_contents = ''
+            penalty_details = (cells[0].contents[1].contents[0].strip()
+                               + ' ' + cells[0].contents[2].strip())
+        if 'PERIOD' in row_contents:
+            # This row is a a period header
+            # e.g., PERIOD 1
+            current_period = parse_int(row_contents.split(' ')[1], 1)
+        elif 'No Penalties' in row_contents:
+            continue
+        else:
+            # Looks like
+            # Shannon at 3:23 - Sean Brantsma for Unsportsmanlike Conduct (2 Min.)
+            p = penalty_details.split(' - ')
+            team_and_time = p[0].split(' at ')
+            team = team_and_time[0]
+            time_str = team_and_time[1]
+            o = p[1].split(' for ')
+            offender = o[0]
+            # Penalties can be two words. Only the ( is constant
+            penalty_and_pim = o[1].split('(')
+            offense = penalty_and_pim[0].strip()
+            # Trim off "Min.)"
+            pim = parse_int(penalty_and_pim[1].strip()[:-5].strip(), 0)
+            try:
+                ps = penalties[team.lower()]
+            except KeyError:
+                ps = []
+            ps.append(Penalty(offense=offense,
+                              period=current_period,
+                              penalty_time=time_str,
+                              team=team,
+                              offender=offender,
+                              pim=pim))
+            penalties[team.lower()] = ps
+    return penalties
 
 
 def correct_team_table(title_row, team):
@@ -213,8 +260,8 @@ def parse_page(soup):
                         rink=rink,
                         away=away,
                         home=home,
-                        away_score=len(goals[away.lower()]),
-                        home_score=len(goals[home.lower()]),
+                        away_score=None,    # TODO
+                        home_score=None,    # TODO
                         goals=goals,
                         shots=shots_on_goal,
                         power_plays=power_plays,
