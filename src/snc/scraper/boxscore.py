@@ -17,7 +17,7 @@ def parse_teams(elem):
     return {'away': away, 'home': home}
 
 
-def parse_goals(elem):
+def parse_goals(by_period_elem, scoring_summary_elem):
     """Returns all the goals scored indexed by team"""
     # 1. Parse the score up the top and use that as the authority
     # 2. Parse the scoring table
@@ -85,6 +85,16 @@ def parse_details(elem):
     return details
 
 
+def parse_start(date_elem, time_elem):
+    """Returns the match start datetime in UTC"""
+    pass
+
+
+def parse_rnk(rink_elem):
+    """Returns the rink the match was played at"""
+    pass
+
+
 def parse_penalties(elem):
     """Returns the penalties indexed by team"""
     # TODO
@@ -148,18 +158,33 @@ def parse_page(soup):
     """Returns a MatchSummary object that represents the given box score page"""
     tables = soup.select('table.boxscores')
     teams = parse_teams(tables[0])
-    # TODO need to parse the start time and rink properly too
-    # TODO reconsider this because on the example page some goals are missing from the who and when
-    # tables[5] for goals who and When
+    # tables[5] for scoring summary
     # tables[1] for goals by period and total
-    # goals = parse_goals()
+    goals = parse_goals(tables[1], tables[5])
     shots_on_goal = parse_shots(tables[2])
     power_plays = parse_power_plays(tables[3])
     details = parse_details(tables[4])
+    start = parse_start(details['foo'], details['bar'])  # TODO
+    rink = parse_rink(details['baz'])  # TODO
     penalies = parse_penalties(tables[6])
-    away_players = parse_players(tables[7], teams['away'])
-    home_players = parse_players(tables[9], teams['home'])
-    away_goalies = parse_goalies(tables[8], teams['away'])
-    home_goalies = parse_goalies(tables[10], teams['home'])
-    # TODO
-    return MatchSummary()
+
+    away = teams['away']
+    home = teams['home']
+    players = {}
+    player[away] = parse_players(tables[7], away)
+    players[home] = parse_players(tables[9], home)
+    goalies = {}
+    goalies[away] = parse_goalies(tables[8], away)
+    goalies[home] = parse_goalies(tables[10], home)
+    return MatchSummary(start=start,
+                        rink=rink,
+                        away=away,
+                        home=home,
+                        away_score=len(goals[away])
+                        home_score=len(goals[home]),
+                        goals=goals,
+                        shots=shots_on_goal,
+                        power_plays=power_plays,
+                        penalties=penalies,
+                        players=players,
+                        goalies=goalies)
