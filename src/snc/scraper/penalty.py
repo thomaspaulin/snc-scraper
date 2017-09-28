@@ -1,4 +1,4 @@
-from datetime import time
+import time
 
 
 class Penalty:
@@ -16,20 +16,20 @@ class Penalty:
                  *,
                  offense,
                  period,
-                 time,
+                 penalty_time,
                  team,
                  offender,
                  pim=2):
         self.offense = offense
         self.period = period
-        self.time = time
+        self.time = time.strptime(penalty_time, '%M:%S')
         self.team = team
         self.offender = offender
         self.pim = pim
 
     def __str__(self):
         penalty_time = time.strftime('%M:%S', self.time)
-        s = '{} at {} - {} for {} ({} mins)'.format(
+        return '{} at {} - {} for {} ({} mins)'.format(
                                                 self.team,
                                                 penalty_time,
                                                 self.offender,
