@@ -15,6 +15,9 @@ This repository uses Scrapy and Python3. To get set up do the following:
 
 ## Scraping in the REPL
 `from bs4 import BeautifulSoup`
+
 `import requests`
+
 `r = requests.get([url goes here])`
+
 `soup = BeautifulSoup(r.text, 'lxml')`
