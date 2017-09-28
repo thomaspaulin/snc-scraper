@@ -24,10 +24,10 @@ class MatchSummary:
     def __init__(self,
                  *,
                  start,
-                 rink
-                 away
-                 home
-                 away_score=0
+                 rink,
+                 away,
+                 home,
+                 away_score=0,
                  home_score=0,
                  goals=[],
                  shots=[],
@@ -49,11 +49,20 @@ class MatchSummary:
         self.goalies = goalies
 
     def __str__(self):
-        return '{} - {} vs. {} at {}'.format(
-                                        self.start,
-                                        self.away,
-                                        self.home,
-                                        self.rink)
+        s = '{} - {} {} vs. {} {} at {}\n'.format(
+                                                self.start,
+                                                self.away,
+                                                self.away_score,
+                                                self.home_score,
+                                                self.home,
+                                                self.rink)
+        s += '---------------------------------------------------\n'
+        s += 'Goals: {}\n'.format(self.goals)
+        s += 'Shots: {}\n'.format(self.shots)
+        s += 'Penalties: {}\n'.format(self.penalties)
+        s += 'Players: {}\n'.format(self.players)
+        s += 'Goalies: {}\n'.format(self.goalies)
+        return s
 
     def __repr__(self):
         return self.__str__()
