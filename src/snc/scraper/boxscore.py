@@ -5,19 +5,69 @@ That is, it is for scraping the match information
 """
 import time
 from players import Goalie, Player
-from parsing_utils import capitalise
+from parsing_utils import capitalise, parse_date, parse_int
 from match_summary import MatchSummary
 
 
 def parse_teams(elem):
     """Returns the teams involved in the match"""
     cell = elem.select('tr')[1:2][0]
-    away = cell.contents[1].select('font')[0].contents[0].contents[0].strip()
-    home = cell.contents[4].select('font')[0].contents[0].contents[0].strip()
+    away = capitalise(cell
+                      .contents[1]
+                      .select('font')[0]
+                      .contents[0]
+                      .contents[0]
+                      .strip())
+    home = capitalise(cell
+                      .contents[4]
+                      .select('font')[0]
+                      .contents[0]
+                      .contents[0]
+                      .strip())
     return {'away': away, 'home': home}
 
 
-def parse_goals(by_period_elem, scoring_summary_elem):
+def parse_by_period(table_rows):
+    """Returns the X per period e.g., shots or goals"""
+    header_cells = table_rows[0].select('td')
+
+    labels = {}
+    for (idx, cell) in enumerate(header_cells[1:]):
+        labels[idx] = cell.contents[0].strip().lower()
+    by_team_by_period = {}
+    for row in table_rows[1:]:
+        cells = row.select('td')
+        team = cells[0].contents[0].lower().strip()
+        try:
+            # the total is in bold so need contents twice
+            expected_total = parse_int(
+                            cells[len(cells)-1].contents[0].contents[0],
+                            0)
+        except AttributeError:
+            # in case the total isn't actually in bold, although I've never
+            # seen this case
+            expected_total = parse_int(
+                            cells[len(cells)-1].contents[0],
+                            0)
+
+        by_period = {}
+        for (idx, cell) in enumerate(cells[1:-1]):
+            val = parse_int(cell.contents[0], 0)
+            by_period[labels[idx]] = val
+
+        actual_total = 0
+        for (period, amt) in by_period.items():
+            actual_total += amt
+
+        if actual_total != expected_total:
+            raise ValueError('Shots by period did not match the declared total'
+                             '({} vs. {})'.format(expected_total, actual_total))
+        else:
+            by_team_by_period[team] = by_period
+    return by_team_by_period
+
+
+def parse_goals(by_period_elem, scoring_summary_elem, away, home):
     """Returns all the goals scored indexed by team"""
     # 1. Parse the score up the top and use that as the authority
     # 2. Parse the scoring table
@@ -28,35 +78,16 @@ def parse_goals(by_period_elem, scoring_summary_elem):
     #    if the information didn't match up. If there is more in
     #    tables than up top, omit the tables
     # TODO
-    pass
+    by_period = parse_by_period(by_period_elem.select('tr'))
+    away_by_period = by_period[away.lower()]
+    home_by_period = by_period[home.lower()]
+    # TODO parse the scoring summary
+    return by_period
 
 
 def parse_shots(elem):
     """Returns all the shots on goal per period indexed by team"""
-    shots = {}
-    rows = elem.select('tr')
-    for row in rows[1:]:
-        cells = row.select('td')
-        team = cells[0].contents[0].strip()
-        try:
-            period_1 = int(cells[1].contents[0].strip())
-        except ValueError:
-            period_1 = 0
-        try:
-            period_2 = int(cells[2].contents[0].strip())
-        except ValueError:
-            period_2 = 0
-        try:
-            period_3 = int(cells[3].contents[0].strip())
-        except ValueError:
-            period_3 = 0
-        # the total is in bold so need contents twice
-        total = int(cells[4].contents[0].contents[0].strip())
-        if (period_1 + period_2 + period_3) is not total:
-            raise ValueError('Shots by period did not match the declared total')
-        else:
-            shots[team] = (period_1, period_2, period_3)
-    return shots
+    return parse_by_period(elem.select('tr'))
 
 
 def parse_power_plays(elem):
@@ -85,14 +116,16 @@ def parse_details(elem):
     return details
 
 
-def parse_start(date_elem, time_elem):
+def parse_start(date_str, time_str):
     """Returns the match start datetime in UTC"""
-    pass
+    # Sep. 30, 2017 4:45PM
+    s = date_str + ' ' + time_str
+    return parse_date(s, '%b. %d, %Y %I:%M%p')
 
 
-def parse_rnk(rink_elem):
+def parse_rink(rink_str):
     """Returns the rink the match was played at"""
-    pass
+    return rink_str.split(' ')[0].strip()
 
 
 def parse_penalties(elem):
@@ -108,7 +141,6 @@ def correct_team_table(title_row, team):
         name = tbl_header.contents[0]
     except AttributeError:
         name = tbl_header
-        pass
     name = name.lower().strip().split(' ')[0]
     return name == team.lower().strip()
 
@@ -128,7 +160,8 @@ def parse_players(elem, team_name):
             # TODO the rest of the information
             players.append(Player(
                 number=number,
-                name=name))
+                name=name,
+                position='?'))
     return players
 
 
@@ -148,9 +181,9 @@ def parse_goalies(elem, team_name):
             mins = time.strptime(mins_str, '%M:%S')
             shots_faced = int(cells[3].contents[0].strip())
             saves_made = int(cells[4].contents[0].strip())
-            goalies.append[Goalie(
+            goalies.append(Goalie(
                 number=number,
-                name=name)]
+                name=name))
     return goalies
 
 
@@ -158,20 +191,20 @@ def parse_page(soup):
     """Returns a MatchSummary object that represents the given box score page"""
     tables = soup.select('table.boxscores')
     teams = parse_teams(tables[0])
+    away = teams['away']
+    home = teams['home']
     # tables[5] for scoring summary
     # tables[1] for goals by period and total
-    goals = parse_goals(tables[1], tables[5])
+    goals = parse_goals(tables[1], tables[5], away, home)
     shots_on_goal = parse_shots(tables[2])
     power_plays = parse_power_plays(tables[3])
     details = parse_details(tables[4])
-    start = parse_start(details['foo'], details['bar'])  # TODO
-    rink = parse_rink(details['baz'])  # TODO
+    start = parse_start(details['Game Date'], details['Start Time'])
+    rink = parse_rink(details['Location'])
     penalies = parse_penalties(tables[6])
 
-    away = teams['away']
-    home = teams['home']
     players = {}
-    player[away] = parse_players(tables[7], away)
+    players[away] = parse_players(tables[7], away)
     players[home] = parse_players(tables[9], home)
     goalies = {}
     goalies[away] = parse_goalies(tables[8], away)
@@ -180,8 +213,8 @@ def parse_page(soup):
                         rink=rink,
                         away=away,
                         home=home,
-                        away_score=len(goals[away])
-                        home_score=len(goals[home]),
+                        away_score=len(goals[away.lower()]),
+                        home_score=len(goals[home.lower()]),
                         goals=goals,
                         shots=shots_on_goal,
                         power_plays=power_plays,
