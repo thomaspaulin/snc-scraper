@@ -10,7 +10,7 @@ class Goal:
         period      Which period the goal was scorer in
         team        Team which scored
         time        When the goal was scored in seconds from the start of the
-                    period
+                    period as a string
         scorer      The name of the player who scored the goal
         assisted_by The names of the players who assisted in the goal.
                     Up to two players can be listed. [] means unassisted
@@ -20,13 +20,13 @@ class Goal:
                  type,
                  team,
                  period,
-                 time,
+                 goal_time,
                  scorer,
                  assisted_by=[]):
         self.type = type
         self.period = period
         self.team = team
-        self.time = time
+        self.time = time.strptime(goal_time, '%M:%S')
         self.scorer = scorer
         self.assisted_by = assisted_by
 
@@ -47,12 +47,7 @@ class Goal:
         return s
 
     def __repr__(self):
-        return '{}, {} at {} - {} assisted by {}'.format(
-                                                    self.period,
-                                                    self.team,
-                                                    self.time,
-                                                    self.scorer,
-                                                    self.assisted_by)
+        return self.__str__()
 
 
 class GoalType(Enum):
