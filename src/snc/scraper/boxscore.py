@@ -4,12 +4,14 @@ http://www.aucklandsnchockey.com/leagues/hockey_boxscores_printable.cfm?clientID
 That is, it is for scraping the match information
 """
 import time
-from players import Goalie, Player
-from parsing_utils import capitalise, parse_date, parse_int
-from match_summary import MatchSummary
-from penalty import Penalty
-from goal import Goal, GoalType
 from functools import reduce
+
+from snc.scraper.goal import Goal, GoalType
+from snc.scraper.match_summary import MatchSummary
+from snc.scraper.parsing_utils import capitalise, parse_date, parse_int
+from snc.scraper.penalty import Penalty
+from snc.scraper.players import Goalie, Player
+
 
 ################################################################################
 # TODO CLEAN UP THIS CODE
@@ -83,6 +85,7 @@ def parse_goals(scoring_summary_elem):
         try:
             # Header row
             row_contents = cells[0].contents[0].contents[0].strip()
+            goal_details = ''
         except AttributeError:
             # Penalty rows have a \n at the 0th index
             row_contents = ''
@@ -122,7 +125,7 @@ def parse_goals(scoring_summary_elem):
                 gs = goals[team]
             except KeyError:
                 gs = []
-            gs.append(Goal(type=goal_type,
+            gs.append(Goal(goal_type=goal_type,
                            team=team,
                            period=current_period,
                            goal_time=time_str,
@@ -201,6 +204,7 @@ def parse_penalties(elem):
         try:
             # Header row
             row_contents = cells[0].contents[0].contents[0].strip()
+            penalty_details = ''
         except AttributeError:
             # Penalty rows have a \n at the 0th index
             row_contents = ''
@@ -286,9 +290,13 @@ def parse_goalies(elem, team_name):
             mins = time.strptime(mins_str, '%M:%S')
             shots_faced = int(cells[3].contents[0].strip())
             saves_made = int(cells[4].contents[0].strip())
+            # Note: These are all on a per game basis and should be combined with the season wide stats in the database
             goalies.append(Goalie(
                 number=number,
-                name=name))
+                name=name,
+                mins=mins,
+                shots_faced=shots_faced,
+                saves_made=saves_made))
     return goalies
 
 
@@ -309,12 +317,14 @@ def parse_page(soup):
     rink = parse_rink(details['Location'])
     penalies = parse_penalties(tables[6])
 
-    players = {}
-    players[away] = parse_players(tables[7], away)
-    players[home] = parse_players(tables[9], home)
-    goalies = {}
-    goalies[away] = parse_goalies(tables[8], away)
-    goalies[home] = parse_goalies(tables[10], home)
+    players = {
+        away: parse_players(tables[7], away),
+        home: parse_players(tables[9], home)
+    }
+    goalies = {
+        away: parse_goalies(tables[8], away),
+        home: parse_goalies(tables[10], home)
+    }
     return MatchSummary(start=start,
                         rink=rink,
                         away=away,

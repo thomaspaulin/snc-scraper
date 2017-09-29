@@ -6,11 +6,12 @@ schedule does not have the boxscore links but for everything else the printable
 schedule is preferred because it has the whole season on one page so fewer
 requests are made
 """
-from bs4 import BeautifulSoup
+
+
 # TODO ADD selectedMonth=3&selectedYear=2017 to get the month of interest page
 
 
-def parse_boxscore_urls(soup):
+def parse_boxscore_urls(soup, base_url):
     """Returns the boxscore URLs for all those matches with them
 
     Note: To use a selectedYear that is not the current season's year you must
@@ -23,4 +24,17 @@ def parse_boxscore_urls(soup):
     boxscore_anchor_elems = [
         x for x in links if 'hockey_boxscores' in x['href']
     ]
-    return [elem['href'] for elem in boxscore_anchor_elems]
+    return [base_url + elem['href'] for elem in boxscore_anchor_elems]
+
+
+def get_schedule_urls(up_to):
+    """Returns the URLs of each schedule page up to the given date"""
+    template = 'http://www.aucklandsnchockey.com/leagues/schedules.cfm' \
+               'selectedMonth={}' \
+               '&selectedYear={}' \
+               '&leagueID=23341' \
+               '&clientID=5788'
+    urls = []
+    for month in range(1, up_to.month + 1):
+        urls.append(template.format(month, up_to.year))
+    return urls

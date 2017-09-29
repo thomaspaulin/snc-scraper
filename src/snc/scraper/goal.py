@@ -13,17 +13,17 @@ class Goal:
                     period as a string
         scorer      The name of the player who scored the goal
         assisted_by The names of the players who assisted in the goal.
-                    Up to two players can be listed. [] means unassisted
+                    Up to two players can be listed.
     """
     def __init__(self,
                  *,
-                 type,
+                 goal_type,
                  team,
                  period,
                  goal_time,
                  scorer,
-                 assisted_by=[]):
-        self.type = type
+                 assisted_by=None):
+        self.type = goal_type
         self.period = period
         self.team = team
         self.time = time.strptime(goal_time, '%M:%S')
@@ -37,13 +37,14 @@ class Goal:
                                             self.team,
                                             goal_time,
                                             self.scorer)
-        if len(self.assisted_by) is 2:
+        if self.assisted_by is None:
+            s += ' (unassisted)'
+        elif len(self.assisted_by) is 2:
             s += ' from {} and {}'.format(self.assisted_by[0],
                                           self.assisted_by[1])
         elif len(self.assisted_by) is 1:
             s += ' from {}'.format(self.assisted_by[0])
-        else:
-            s += ' (unassisted)'
+
         return s
 
     def __repr__(self):

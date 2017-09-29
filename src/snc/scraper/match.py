@@ -1,5 +1,6 @@
 from enum import Enum
 from datetime import datetime
+import snc.scraper.parsing_utils as util
 
 
 class MatchType(Enum):
@@ -15,7 +16,8 @@ class Match:
         game_type   The game's type. Typically practice, regular season, or
                     playoff. PR, RO, and PO respectively
         season      The season the match is in
-        start       The datetime at which the match starts, in UTC
+        start       The datetime at which the match starts, in UTC. Otherwise a date string in the format
+                    2017-09-30T19:00:55Z
         away        The away team
         home        The home team
         away_score  The away team's score. None if the game hasn't been played
@@ -34,7 +36,10 @@ class Match:
                  rink):
         self.game_type = game_type
         self.season = season
-        self.start = start
+        if str(start):
+            self.start = util.parse_date(start, '%Y-%m-%dT%H:%M:%SZ')
+        else:
+            self.start = start
         self.away = away
         self.home = home
         self.away_score = away_score
@@ -42,10 +47,11 @@ class Match:
         self.rink = rink
 
     def __str__(self):
+        time = datetime.strftime(self.start, '%Y-%m-%dT%H:%M:%SZ')
         return '{},{},{},{},{},{},{},{}'.format(
                                             self.game_type,
                                             self.season,
-                                            self.start,
+                                            time,
                                             self.away,
                                             self.home,
                                             self.away_score,
@@ -71,7 +77,7 @@ class Match:
             for line in lines:
                 tokens = line.split(",")
                 gametype = tokens[0]
-                season = tokens[1]
+                season = int(tokens[1])
                 start = tokens[2]
                 away = tokens[3]
                 home = tokens[4]
@@ -79,12 +85,12 @@ class Match:
                 homescore = tokens[6]
                 rink = tokens[7]
                 m = Match(
-                        gametype=gametype,
+                        game_type=gametype,
                         season=season,
                         start=start,
                         away=away,
                         home=home,
-                        awayscore=awayscore,
-                        homescore=homescore,
+                        away_score=awayscore,
+                        home_score=homescore,
                         rink=rink)
                 matches.append(m)
