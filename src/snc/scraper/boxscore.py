@@ -11,6 +11,10 @@ from penalty import Penalty
 from goal import Goal, GoalType
 from functools import reduce
 
+################################################################################
+# TODO CLEAN UP THIS CODE
+################################################################################
+
 
 def parse_teams(elem):
     """Returns the teams involved in the match"""
@@ -209,7 +213,6 @@ def parse_penalties(elem):
         else:
             # Looks like
             # Shannon at 3:23 - Sean Brantsma for Unsportsmanlike Conduct (2 Min.)
-            # TODO use regex to parse the string
             p = penalty_details.split(' - ')
             team_time = p[0].split(' at ')
             if team_time[0].strip() == 'No Penalties':
@@ -260,7 +263,6 @@ def parse_players(elem, team_name):
             cells = row.select('td')
             number = int(cells[0].contents[0].strip())
             name = cells[1].contents[0].strip()
-            # TODO the rest of the information
             players.append(Player(
                 number=number,
                 name=name,
