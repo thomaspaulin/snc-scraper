@@ -1,5 +1,5 @@
 from enum import Enum
-from datetime import time
+import time
 
 
 class Goal:

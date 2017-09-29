@@ -8,6 +8,8 @@ from players import Goalie, Player
 from parsing_utils import capitalise, parse_date, parse_int
 from match_summary import MatchSummary
 from penalty import Penalty
+from goal import Goal, GoalType
+from functools import reduce
 
 
 def parse_teams(elem):
@@ -64,13 +66,69 @@ def parse_by_period(table_rows):
             raise ValueError('Shots by period did not match the declared total'
                              '({} vs. {})'.format(expected_total, actual_total))
         else:
-            print('by period:')
-            print(by_period)
             by_team_by_period[team] = by_period
     return by_team_by_period
 
 
-def parse_goals(by_period_elem, scoring_summary_elem, away, home):
+def parse_goals(scoring_summary_elem):
+    rows = scoring_summary_elem.select('tr')
+    current_period = 1
+    goals = {}
+    for row in rows[1:]:
+        cells = row.select('td')
+        try:
+            # Header row
+            row_contents = cells[0].contents[0].contents[0].strip()
+        except AttributeError:
+            # Penalty rows have a \n at the 0th index
+            row_contents = ''
+            goal_details = (cells[0].contents[1].contents[0].strip()
+                            + ' ' + cells[0].contents[2].strip())
+        if 'PERIOD' in row_contents:
+            # This row is a a period header
+            # e.g., PERIOD 1
+            current_period = parse_int(row_contents.split(' ')[1], 1)
+        else:
+            # Looks like
+            # Spartans at 10:42 - Joseph Hyun (unassisted)
+            # Spartans at 6:48 - Wesley Bindell from Jordan Hills and Mike Davys
+            # Spartans at 0:36 (PP) - Mike Davys from Joseph Hyun
+            split = goal_details.split(' - ')
+            team_time = split[0].split(' at ')
+            if team_time[0].strip() == 'No Scoring':
+                continue
+            team = team_time[0].lower().strip()
+            if '(' in team_time[1]:
+                # Haven't seen what a short handed goal looks like yet
+                goal_type = GoalType.POWER_PLAY
+                team_time[1] = team_time[1][0:-5]
+            else:
+                goal_type = GoalType.REGULAR
+            time_str = team_time[1].strip()
+            scorer_assists = split[1].split('from')
+            try:
+                scorer = scorer_assists[0].strip()
+                assists = scorer_assists[1].split(' and ')
+                assists = [x.strip() for x in assists]
+            except IndexError:
+                scorer = scorer_assists[0].strip()
+                scorer = scorer[0:scorer.index('(unassisted)')].strip()
+                assists = []
+            try:
+                gs = goals[team]
+            except KeyError:
+                gs = []
+            gs.append(Goal(type=goal_type,
+                           team=team,
+                           period=current_period,
+                           goal_time=time_str,
+                           scorer=scorer,
+                           assisted_by=assists))
+            goals[team] = gs
+    return goals
+
+
+def parse_scores(by_period_elem, away, home):
     """Returns all the goals scored indexed by team"""
     # 1. Parse the score up the top and use that as the authority
     # 2. Parse the scoring table
@@ -80,12 +138,10 @@ def parse_goals(by_period_elem, scoring_summary_elem, away, home):
     # 6. Submit everything but have a warning to display on the UI
     #    if the information didn't match up. If there is more in
     #    tables than up top, omit the tables
-    # TODO
     by_period = parse_by_period(by_period_elem.select('tr'))
-    away_by_period = by_period[away.lower()]
-    home_by_period = by_period[home.lower()]
-    # TODO parse the scoring summary and make the return type a list of goals by team
-    return by_period
+    away_count = reduce((lambda x, y: x + y), by_period[away.lower()].values())
+    home_count = reduce((lambda x, y: x + y), by_period[home.lower()].values())
+    return {away.lower(): away_count, home.lower(): home_count}
 
 
 def parse_shots(elem):
@@ -133,7 +189,6 @@ def parse_rink(rink_str):
 
 def parse_penalties(elem):
     """Returns the penalties indexed by team"""
-    # TODO
     rows = elem.select('tr')
     current_period = 1
     penalties = {}
@@ -151,15 +206,16 @@ def parse_penalties(elem):
             # This row is a a period header
             # e.g., PERIOD 1
             current_period = parse_int(row_contents.split(' ')[1], 1)
-        elif 'No Penalties' in row_contents:
-            continue
         else:
             # Looks like
             # Shannon at 3:23 - Sean Brantsma for Unsportsmanlike Conduct (2 Min.)
+            # TODO use regex to parse the string
             p = penalty_details.split(' - ')
-            team_and_time = p[0].split(' at ')
-            team = team_and_time[0]
-            time_str = team_and_time[1]
+            team_time = p[0].split(' at ')
+            if team_time[0].strip() == 'No Penalties':
+                continue
+            team = team_time[0]
+            time_str = team_time[1]
             o = p[1].split(' for ')
             offender = o[0]
             # Penalties can be two words. Only the ( is constant
@@ -242,7 +298,8 @@ def parse_page(soup):
     home = teams['home']
     # tables[5] for scoring summary
     # tables[1] for goals by period and total
-    goals = parse_goals(tables[1], tables[5], away, home)
+    score = parse_scores(tables[1], away, home)
+    goals = parse_goals(tables[5])
     shots_on_goal = parse_shots(tables[2])
     power_plays = parse_power_plays(tables[3])
     details = parse_details(tables[4])
@@ -260,8 +317,8 @@ def parse_page(soup):
                         rink=rink,
                         away=away,
                         home=home,
-                        away_score=None,    # TODO
-                        home_score=None,    # TODO
+                        away_score=score[away.lower()],
+                        home_score=score[home.lower()],
                         goals=goals,
                         shots=shots_on_goal,
                         power_plays=power_plays,
