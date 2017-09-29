@@ -8,6 +8,7 @@ class Penalty:
         offense     Type of penalty
         period      The period during which the penalty was incurred
         time        Time of the penalty in seconds from the start of the period
+                    as a string
         team        Team of the offending player
         offender    The offending player's name
         pim         Penalty incurred minutes
