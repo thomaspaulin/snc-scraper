@@ -251,7 +251,7 @@ def parse_penalties(elem):
     return penalties
 
 
-def parse_players(elem, team_name):
+def parse_players(elem):
     """Returns a list of players"""
     players = []
     rows = elem.select('tr')
@@ -268,7 +268,7 @@ def parse_players(elem, team_name):
     return players
 
 
-def parse_goalies(elem, team_name):
+def parse_goalies(elem):
     """Returns a list of goalies"""
     goalies = []
     rows = elem.select('tr')
