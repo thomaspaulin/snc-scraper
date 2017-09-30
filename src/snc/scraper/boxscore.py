@@ -307,7 +307,7 @@ def parse_page(soup):
     details = parse_details(tables[4])
     start = parse_start(details['Game Date'], details['Start Time'])
     rink = parse_rink(details['Location'])
-    penalies = parse_penalties(tables[6])
+    penalties = parse_penalties(tables[6])
 
     players = {}
     players[away] = parse_players(tables[7], away)
@@ -324,6 +324,6 @@ def parse_page(soup):
                         goals=goals,
                         shots=shots_on_goal,
                         power_plays=power_plays,
-                        penalties=penalies,
+                        penalties=penalties,
                         players=players,
                         goalies=goalies)

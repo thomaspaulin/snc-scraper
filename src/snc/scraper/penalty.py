@@ -11,7 +11,7 @@ class Penalty:
                     as a string
         team        Team of the offending player
         offender    The offending player's name
-        pim         Penalty incurred minutes
+        pim         Penalty infraction minutes
     """
     def __init__(self,
                  *,
