@@ -1,3 +1,5 @@
+from datetime import datetime
+
 """
 For parsing
 http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341
@@ -20,21 +22,33 @@ def parse_boxscore_urls(soup, base_url):
           e.g.,
           You cannot be in the 2017 season and use selectedYear=2016
     """
-    links = soup.select('table.boxscores')[4].select('a')
+    try:
+        links = soup.select('table.boxscores')[4].select('a')
+    except IndexError:
+        return []
     boxscore_anchor_elems = [
         x for x in links if 'hockey_boxscores' in x['href']
     ]
-    return [base_url + elem['href'] for elem in boxscore_anchor_elems]
+    return [
+        (base_url + elem['href']).replace('hockey_boxscores.cfm', 'hockey_boxscores_printable.cfm')
+        for elem in boxscore_anchor_elems
+    ]
 
 
-def get_schedule_urls(up_to):
-    """Returns the URLs of each schedule page up to the given date"""
+def get_schedule_urls(year=datetime.utcnow().year, start_month=1, end_month=12):
+    """
+    Returns the URLs of each schedule page up to the given date's month
+
+    NB: Day is not supported by the website, only month and year
+    """
     template = 'http://www.aucklandsnchockey.com/leagues/schedules.cfm' \
-               'selectedMonth={}' \
+               '?selectedMonth={}' \
                '&selectedYear={}' \
                '&leagueID=23341' \
                '&clientID=5788'
+    if start_month > end_month:
+        raise ValueError('start_month must be less than or equal to end_month')
     urls = []
-    for month in range(1, up_to.month + 1):
-        urls.append(template.format(month, up_to.year))
+    for month in range(start_month, end_month + 1):
+        urls.append(template.format(month, year))
     return urls

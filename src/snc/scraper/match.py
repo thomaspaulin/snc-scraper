@@ -1,5 +1,6 @@
-from enum import Enum
 from datetime import datetime
+from enum import Enum
+
 import snc.scraper.parsing_utils as util
 
 
@@ -34,9 +35,17 @@ class Match:
                  away_score=None,
                  home_score=None,
                  rink):
-        self.game_type = game_type
+        if type(game_type) is str:
+            for name, value in [(e.name, e.value) for e in MatchType]:
+                if value == game_type:
+                    self.game_type = MatchType[name]
+                    break
+                else:
+                    self.game_type = MatchType.REGULAR_SEASON
+        else:
+            self.game_type = game_type
         self.season = season
-        if str(start):
+        if type(start) is str:
             self.start = util.parse_date(start, '%Y-%m-%dT%H:%M:%SZ')
         else:
             self.start = start
@@ -60,37 +69,3 @@ class Match:
 
     def __repr__(self):
         return self.__str__()
-
-    @classmethod
-    def write_matches_csv(cls, matches, **kwargs):
-        filename = kwargs.pop('filename', 'matches.csv')
-        with open(filename, 'w') as f:
-            for m in matches:
-                f.write('%s\n' % m)
-
-    @classmethod
-    def read_from_csv(cls, **kwargs):
-        filename = kwargs.pop('filename', 'matches.csv')
-        matches = []
-        with open(filename, 'r') as f:
-            lines = f.readline()
-            for line in lines:
-                tokens = line.split(",")
-                gametype = tokens[0]
-                season = int(tokens[1])
-                start = tokens[2]
-                away = tokens[3]
-                home = tokens[4]
-                awayscore = tokens[5]
-                homescore = tokens[6]
-                rink = tokens[7]
-                m = Match(
-                        game_type=gametype,
-                        season=season,
-                        start=start,
-                        away=away,
-                        home=home,
-                        away_score=awayscore,
-                        home_score=homescore,
-                        rink=rink)
-                matches.append(m)

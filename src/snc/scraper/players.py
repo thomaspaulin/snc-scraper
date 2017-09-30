@@ -12,7 +12,7 @@ class Player:
                  *,
                  number,
                  name,
-                 position):
+                 position='?'):
         self.number = number
         self.name = name
         self.position = position

@@ -64,7 +64,7 @@ def parse_row(row_elem):
         home_score = parse_score(tds[6].contents[0])
         rink = parse_rink(tds[7].contents[0])
 
-        return Match(game_type=MatchType[game_type[game_type_acronym]],
+        return Match(game_type=game_type[game_type_acronym],
                      season=date.year,
                      start=date,
                      away=away,

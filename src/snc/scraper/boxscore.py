@@ -107,8 +107,15 @@ def parse_goals(scoring_summary_elem):
             team = team_time[0].lower().strip()
             if '(' in team_time[1]:
                 # Haven't seen what a short handed goal looks like yet
-                goal_type = GoalType.POWER_PLAY
-                team_time[1] = team_time[1][0:-5]
+                idx = team_time[1].index('(')
+                gt = team_time[1][idx+1: idx+2]
+                if gt == 'PP':
+                    goal_type = GoalType.POWER_PLAY
+                elif gt == 'SH':
+                    goal_type = GoalType.SHORTHANDED
+                else:
+                    goal_type = GoalType.REGULAR
+                team_time[1] = team_time[1][0:idx]
             else:
                 goal_type = GoalType.REGULAR
             time_str = team_time[1].strip()
@@ -244,33 +251,20 @@ def parse_penalties(elem):
     return penalties
 
 
-def correct_team_table(title_row, team):
-    """Returns True if the table is for the specified team"""
-    tbl_header = title_row.select('td')[0].contents[0]
-    try:
-        name = tbl_header.contents[0]
-    except AttributeError:
-        name = tbl_header
-    name = name.lower().strip().split(' ')[0]
-    return name == team.lower().strip()
-
-
 def parse_players(elem, team_name):
     """Returns a list of players"""
     players = []
     rows = elem.select('tr')
-    if not correct_team_table(rows[0], team_name):
-        raise ValueError('The provided team did not match that found in the '
-                         'table header ')
-    else:
-        for row in rows[2:]:
+    for row in rows[2:]:
+        try:
             cells = row.select('td')
             number = int(cells[0].contents[0].strip())
             name = cells[1].contents[0].strip()
             players.append(Player(
                 number=number,
-                name=name,
-                position='?'))
+                name=name))
+        except ValueError:
+            continue
     return players
 
 
@@ -278,11 +272,8 @@ def parse_goalies(elem, team_name):
     """Returns a list of goalies"""
     goalies = []
     rows = elem.select('tr')
-    if not correct_team_table(rows[0], team_name):
-        raise ValueError('The provided team did not match that found in the '
-                         'table header ')
-    else:
-        for row in rows[2:]:
+    for row in rows[2:]:
+        try:
             cells = row.select('td')
             number = int(cells[0].contents[0].strip())
             name = cells[1].contents[0].strip()
@@ -297,15 +288,22 @@ def parse_goalies(elem, team_name):
                 mins=mins,
                 shots_faced=shots_faced,
                 saves_made=saves_made))
+        except ValueError:
+            continue
     return goalies
 
 
 def parse_page(soup):
     """Returns a MatchSummary object that represents the given box score page"""
     tables = soup.select('table.boxscores')
-    teams = parse_teams(tables[0])
-    away = teams['away']
-    home = teams['home']
+    try:
+        teams = parse_teams(tables[0])
+        away = teams['away']
+        home = teams['home']
+    except IndexError:
+        print(soup)
+        raise IndexError('halp')
+
     # tables[5] for scoring summary
     # tables[1] for goals by period and total
     score = parse_scores(tables[1], away, home)
@@ -313,6 +311,7 @@ def parse_page(soup):
     shots_on_goal = parse_shots(tables[2])
     power_plays = parse_power_plays(tables[3])
     details = parse_details(tables[4])
+
     start = parse_start(details['Game Date'], details['Start Time'])
     rink = parse_rink(details['Location'])
     penalies = parse_penalties(tables[6])

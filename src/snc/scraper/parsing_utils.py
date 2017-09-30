@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from pytz import timezone, utc
 
 
@@ -37,3 +37,9 @@ def parse_schedule_date(date_str):
             ds = ds.replace(day, days[day])
     date = tz.localize(datetime.strptime(ds, '%A %d-%b-%Y %I:%M%p'))
     return date.astimezone(utc)
+
+
+# See https://stackoverflow.com/questions/1060279/iterating-through-a-range-of-dates-in-python
+def daterange(start_date, end_date):
+    for n in range(int((end_date - start_date).days)):
+        yield start_date + timedelta(n)

@@ -1,5 +1,5 @@
-from enum import Enum
 import time
+from enum import Enum
 
 
 class Goal:
@@ -26,7 +26,11 @@ class Goal:
         self.type = goal_type
         self.period = period
         self.team = team
-        self.time = time.strptime(goal_time, '%M:%S')
+        try:
+            self.time = time.strptime(goal_time, '%M:%S')
+        except ValueError:
+            print('Failed to parse the time: {}'.format(goal_time))
+            self.time = None
         self.scorer = scorer
         self.assisted_by = assisted_by
 

@@ -20,7 +20,7 @@ def parse_logo(img_wrapper_elem):
 def parse_record(record_wrapper_elem):
     """Returns the parsed team record as a tuple in the form W-L-T"""
     records = record_wrapper_elem.contents[2].split('-')
-    return records[0], records[1], records[2]
+    return int(records[0]), int(records[1]), int(records[2])
 
 
 def parse_team(team_elem, division):
@@ -44,10 +44,10 @@ def parse_division(header_elem):
     return title.split('-')[1].strip()[0:1]
 
 
-def parse(self):
+def parse(soup):
     """Returns the teams in the league that could be parsed"""
     parsed_teams = []
-    team_elems = self.soup.select('div > table.boxscores')[1:]
+    team_elems = soup.select('div > table.boxscores')[1:]
     current_division = 'A'
     for elem in team_elems:
         if len(elem.select('font')) is not 0:

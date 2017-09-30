@@ -23,7 +23,11 @@ class Penalty:
                  pim=2):
         self.offense = offense
         self.period = period
-        self.time = time.strptime(penalty_time, '%M:%S')
+        try:
+            self.time = time.strptime(penalty_time, '%M:%S')
+        except ValueError:
+            print('Failed to parse the time: {}'.format(penalty_time))
+            self.time = None
         self.team = team
         self.offender = offender
         self.pim = pim
