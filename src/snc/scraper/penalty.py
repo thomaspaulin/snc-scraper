@@ -1,4 +1,4 @@
-from datetime import time
+import time
 
 
 class Penalty:
@@ -8,6 +8,7 @@ class Penalty:
         offense     Type of penalty
         period      The period during which the penalty was incurred
         time        Time of the penalty in seconds from the start of the period
+                    as a string
         team        Team of the offending player
         offender    The offending player's name
         pim         Penalty incurred minutes
@@ -16,20 +17,24 @@ class Penalty:
                  *,
                  offense,
                  period,
-                 time,
+                 penalty_time,
                  team,
                  offender,
                  pim=2):
         self.offense = offense
         self.period = period
-        self.time = time
+        try:
+            self.time = time.strptime(penalty_time, '%M:%S')
+        except ValueError:
+            print('Failed to parse the time: {}'.format(penalty_time))
+            self.time = None
         self.team = team
         self.offender = offender
         self.pim = pim
 
     def __str__(self):
         penalty_time = time.strftime('%M:%S', self.time)
-        s = '{} at {} - {} for {} ({} mins)'.format(
+        return '{} at {} - {} for {} ({} mins)'.format(
                                                 self.team,
                                                 penalty_time,
                                                 self.offender,

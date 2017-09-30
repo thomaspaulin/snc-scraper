@@ -1,8 +1,10 @@
 import bs4
-from bs4 import BeautifulSoup
-import schedule_util
-from match import Match
-from match import MatchType
+from snc.scraper.parsing_utils import parse_schedule_date
+from snc.scraper.match import Match, MatchType
+"""
+For parsing
+http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1
+"""
 
 
 def parse_score(score_elem):
@@ -37,6 +39,13 @@ def parse_rink(rink_elem):
     return rink_elem.strip()[:-5]
 
 
+game_type = {
+    'PR': MatchType.PRACTICE,
+    'RS': MatchType.REGULAR_SEASON,
+    'PO': MatchType.PLAYOFF
+}
+
+
 def parse_row(row_elem):
     tds = row_elem.select('td')
 
@@ -47,9 +56,7 @@ def parse_row(row_elem):
         game_type_acronym = tds[0].select('font')[0].contents[0].strip()
 
         # In the format SA 18-Mar-2017 4:30P
-        date = schedule_util.parse_date(tds[1].contents[0].strip()
-                                        + ' '
-                                        + tds[2].contents[0].strip())
+        date = parse_schedule_date(tds[1].contents[0].strip() + ' ' + tds[2].contents[0].strip())
         # practice and regular season
         away = parse_team(tds[3].contents[0])
         away_score = parse_score(tds[4].contents[0])
@@ -57,7 +64,7 @@ def parse_row(row_elem):
         home_score = parse_score(tds[6].contents[0])
         rink = parse_rink(tds[7].contents[0])
 
-        return Match(game_type=MatchType['game_type_acronym'],
+        return Match(game_type=game_type[game_type_acronym],
                      season=date.year,
                      start=date,
                      away=away,
@@ -69,19 +76,11 @@ def parse_row(row_elem):
         return None
 
 
-class PrintableScheduleParser:
-    """
-    For parsing
-    http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1
-    """
-    def __init__(self, schedule_page_soup):
-        self.soup = schedule_page_soup
-
-    def parse(self):
-        """Returns the season schedule that was able to be parsed"""
-        parsed_matches = []
-        rows = self.soup.select('table tr')
-        # First 6 are headers
-        for row in rows[6:-1]:
-            parsed_matches.append(parse_row(row))
-        return parsed_matches
+def parse(soup):
+    """Returns the season schedule that was able to be parsed"""
+    parsed_matches = []
+    rows = soup.select('table tr')
+    # First 6 are headers
+    for row in rows[6:-1]:
+        parsed_matches.append(parse_row(row))
+    return parsed_matches
