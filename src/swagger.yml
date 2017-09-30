@@ -1,0 +1,444 @@
+
+
+TODO TODO TODO TODO
+0. Find an appropriate licence
+1. Fix metadata to be correct and not the default implemtation
+2. Think up a design for the various matches and schedule endpoints so they are more cohesive
+3. Add /players
+4. Add /goalies
+5. Add /goals
+6. Add /penalties
+7. Add tags for the new endpoints
+8. Consider making a new ApiResponse model depending on design changes in 2.
+9. Make IDs UUID strings + Instead of nesting objects consider using IDs
+TODO TODO TODO TODO
+
+
+
+swagger: "2.0"
+info:
+  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  version: "1.0.0"
+  title: "SNC API"
+  contact:
+    email: "not-an-email@example.org"
+  license:
+    name: "Apache 2.0"
+    url: "http://www.apache.org/licenses/LICENSE-2.0.html"
+host: "snc.acgt.io"
+basePath: "/v0"
+tags:
+- name: "matches"
+  description: "Operations about matches"
+- name: "schedule"
+  description: "Matches for a particular team"
+schemes:
+- "http"
+paths:
+  /matches:
+    post:
+      tags:
+      - "matches"
+      summary: "Add a new match"
+      description: ""
+      operationId: "addMatch"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/xml"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "Match object that needs to be added to the system"
+        required: true
+        schema:
+          $ref: "#/definitions/Match"
+      responses:
+        405:
+          description: "Invalid input"
+      security:
+      - snc_auth:
+        - "write:matches"
+        - "read:matches"
+  /matches/{matchId}:
+    get:
+      tags:
+      - "matches"
+      summary: "Get a specific match"
+      operationId: "findMatch"
+      produces:
+        - "application/json"
+      parameters:
+      - in: "path"
+        name: "matchId"
+        description: "ID of the match to fetch"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Match"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Match not be found"
+    put:
+      tags:
+      - "matches"
+      summary: "Update an existing match"
+      description: ""
+      operationId: "updateMatch"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "matchId"
+        description: "ID of the match to update"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        description: "Match object that needs to be updated"
+        required: true
+        schema:
+          $ref: "#/definitions/Match"
+      responses:
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Match not found"
+        405:
+          description: "Validation exception"
+      security:
+      - snc_auth:
+        - "write:matches"
+        - "read:matches"
+  /schedule/{teamId}:
+    get:
+      tags:
+      - "schedule"
+      summary: "Finds this season's schedule for a given team"
+      operationId: "findTeamSchedule"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamId"
+        in: "path"
+        description: "ID of the team whose schedule should be fetched"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Match"
+        400:
+          description: "Invalid ID"
+      security:
+      - snc_auth:
+        - "write:matches"
+        - "read:matches"
+  /teams/{teamName}:
+    get:
+      tags:
+      - "teams"
+      summary: "Get team by name"
+      description: ""
+      operationId: "getTeamByName"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamName"
+        in: "path"
+        description: "The name that needs to be fetched."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/Team"
+        400:
+          description: "Invalid team supplied"
+        404:
+          description: "Team not found"
+    put:
+      tags:
+      - "teams"
+      summary: "Updated team"
+      description: "This can only be done by the logged in user."
+      operationId: "updateTeam"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "teamName"
+        in: "path"
+        description: "Team that need to be updated"
+        required: true
+        type: "string"
+      - in: "body"
+        name: "body"
+        description: "Updated team object"
+        required: true
+        schema:
+          $ref: "#/definitions/Team"
+      responses:
+        400:
+          description: "Invalid team supplied"
+        404:
+          description: "Team not found"
+securityDefinitions:
+  # TODO
+  snc_auth:
+    type: "oauth2"
+    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
+    flow: "implicit"
+    scopes:
+      write:matches: "Create and update matches"
+      read:matches: "Read the match schedule"
+  api_key:
+    type: "apiKey"
+    name: "api_key"
+    in: "header"
+definitions:
+  Score:
+    type: "object"
+    required:
+      - score
+      - team
+    properties:
+      score:
+        type: "number"
+        format: "int32"
+      team:
+        type: "string"
+        description: "Which team to update, home or away"
+        enum:
+          - "home"
+          - "away"
+  Goalie:
+    type: "object"
+    required:
+      - number
+      - name
+      - team
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      number:
+        type: "integer"
+        format: "int32"
+        description: "The player's jersey number"
+      name:
+        type: "string"
+      team:
+        $ref: "#/definitions/Team"
+      shots:
+        type: "number"
+        format: "int32"
+        description: "Number of shots faced"
+      saves:
+        type: "number"
+        format: "int32"
+        description: "Number of saves made"
+  Player:
+    type: "object"
+    required:
+      - number
+      - name
+      - team
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      number:
+        type: "integer"
+        format: "int32"
+        description: "The player's jersey number"
+      name:
+        type: "string"
+      team:
+        $ref: "#/definitions/Team"
+      position:
+        type: "string"
+        enum:
+          - "F"
+          - "D"
+  Goal:
+    type: "object"
+    required:
+    - "type"
+    - "team"
+    - "time"
+    - "scorer"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      type:
+        type: "string"
+        enum:
+        - "PR"
+        - "RS"
+        - "PO"
+      team:
+        $ref: "#/definitions/Team" # consider just using the ID instead
+      time:
+        type: "integer"
+        format: "int32"
+        description: "Seconds left in the period when the goal was scored"
+      scorer:
+        type: "string"
+      assists:
+        type: "array"
+        items:
+          type: "string"
+  Penalty:
+    type: "object"
+    required:
+      - period
+      - team
+      - time
+      - offense
+      - offender
+    properties:
+      period:
+        type: "integer"
+        format: "int32"
+      team:
+        $ref: "#/definitions/Team"
+      time:
+        type: "integer"
+        format: "int32"
+        description: "Seconds left in the period when the penalty was incurred"
+      offense:
+        type: "string"
+        description: "Title of the penalty"
+        example: "Hooking"
+      offender:
+        type: "string"
+      pim:
+        type: "integer"
+        format: "int32"
+        description: "Penalty infraction minutes"
+        example: 2
+  Team:
+    type: "object"
+    required:
+    - "name"
+    - "division"
+    - "logoUrl"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+        example: "Bears"
+      logoUrl:
+        type: "string"
+        example: "http://www.aucklandsnchockey.com/media/leagues/5788/graphics/bears_ice_hockey_team_official_logo.jpg"
+      division:
+        type: "string"
+        example: "C"
+      players:
+        type: "array"
+        items:
+          $ref: "#/definitions/Player"
+  Match:
+    type: "object"
+    required:
+      - start
+      - away
+      - home
+      - rink
+    properties:
+      start:
+        type: "string"
+        format: "date"
+        description: "Date time at which the match starts, in UTC"
+      season:
+        type: "integer"
+        format: "int32"
+        description: "Season in which the match was/will be played. Usually the year"
+        example: 2017
+      away:
+        $ref: "#/definitions/Team"
+      home:
+        $ref: "#/definitions/Team"
+      awayScore:
+        type: "integer"
+        format: "int32"
+      homeScore:
+        type: "integer"
+        format: "int32"
+      rink:
+        type: "string"
+  MatchSummary:
+    type: "object"
+    required:
+      - start
+      - away
+      - home
+      - rink
+    properties:
+      start:
+        type: "string"
+        format: "date"
+        description: "Date time at which the match starts, in UTC"
+      away:
+        $ref: "#/definitions/Team"
+      home:
+        $ref: "#/definitions/Team"
+      awayScore:
+        type: "integer"
+        format: "int32"
+      homeScore:
+        type: "integer"
+        format: "int32"
+      rink:
+        type: "string"
+      goals:
+        description: "Goals indexed by team name"
+        additionalProperties:
+          type: "array"
+          items:
+            $ref: "#/definitions/Goal"
+      shots:
+        description: "TODO"
+      powerPlays:
+        description: "TODO"
+      penalities:
+        description: "Penalties indexed by team name"
+        additionalProperties:
+          type: "array"
+          items:
+            $ref: "#/definitions/Penalty"
+      players:
+        description: "Players indexed by team name"
+        additionalProperties:
+          type: "array"
+          items:
+            $ref: "#/definitions/Player"
+      goalies:
+        description: "Goalies indexed by team name"
+        additionalProperties:
+          type: "array"
+          items:
+            $ref: "#/definitions/Goalie"
+  ApiResponse:
+    type: "object"
+    properties:
+      code:
+        type: "integer"
+        format: "int32"
+      type:
+        type: "string"
+      message:
+        type: "string"
