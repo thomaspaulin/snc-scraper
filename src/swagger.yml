@@ -1,23 +1,6 @@
-
-
-TODO TODO TODO TODO
-0. Find an appropriate licence
-1. Fix metadata to be correct and not the default implemtation
-2. Think up a design for the various matches and schedule endpoints so they are more cohesive
-3. Add /players
-4. Add /goalies
-5. Add /goals
-6. Add /penalties
-7. Add tags for the new endpoints
-8. Consider making a new ApiResponse model depending on design changes in 2.
-9. Make IDs UUID strings + Instead of nesting objects consider using IDs
-TODO TODO TODO TODO
-
-
-
 swagger: "2.0"
 info:
-  description: "This is a sample server Petstore server.  You can find out more about     Swagger at [http://swagger.io](http://swagger.io) or on [irc.freenode.net, #swagger](http://swagger.io/irc/).      For this sample, you can use the api key `special-key` to test the authorization     filters."
+  description: "This is an API server for the data scraped from the SNC website."
   version: "1.0.0"
   title: "SNC API"
   contact:
@@ -26,16 +9,38 @@ info:
     name: "Apache 2.0"
     url: "http://www.apache.org/licenses/LICENSE-2.0.html"
 host: "snc.acgt.io"
-basePath: "/v0"
+basePath: "/v1"
 tags:
 - name: "matches"
   description: "Operations about matches"
-- name: "schedule"
-  description: "Matches for a particular team"
+- name: "goals"
+  description: "Operations about goals"
+- name: "penalties"
+  description: "Operations about penalties"
+- name: "players"
+  description: "Operations about players"
+- name: "goalies"
+  description: "Operations about goalies"
+- name: "teams"
+  description: "Operations about teams"
 schemes:
 - "http"
 paths:
   /matches:
+    get:
+      tags:
+      - "matches"
+      summary: "Get the current season's matches"
+      operationId: "seasonMatches"
+      produces:
+        - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Match"
     post:
       tags:
       - "matches"
@@ -45,7 +50,7 @@ paths:
       consumes:
       - "application/json"
       produces:
-      - "application/xml"
+      - "application/json"
       parameters:
       - in: "body"
         name: "body"
@@ -57,9 +62,7 @@ paths:
         405:
           description: "Invalid input"
       security:
-      - snc_auth:
-        - "write:matches"
-        - "read:matches"
+      - apiKey: []
   /matches/{matchId}:
     get:
       tags:
@@ -113,21 +116,71 @@ paths:
         405:
           description: "Validation exception"
       security:
-      - snc_auth:
-        - "write:matches"
-        - "read:matches"
-  /schedule/{teamId}:
+      - apiKey: []
+  /matches/{matchId}/summary:
     get:
       tags:
-      - "schedule"
-      summary: "Finds this season's schedule for a given team"
+      - "matches"
+      summary: "Get a specific match"
+      operationId: "matchSummary"
+      produces:
+        - "application/json"
+      parameters:
+      - in: "path"
+        name: "matchId"
+        description: "ID of the match to fetch"
+        required: true
+        type: "integer"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            $ref: "#/definitions/MatchSummary"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Match not be found"
+    put:
+      tags:
+      - "matches"
+      summary: "Update the match summary"
+      description: "Used to update a match's summary. There is no POST because summaries are automatically generated when a match is created"
+      operationId: "saveMatchSummary"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "path"
+        name: "matchId"
+        description: "ID of the match to fetch"
+        required: true
+        type: "integer"
+      - in: "body"
+        name: "body"
+        description: "Match summary that needs to be saved"
+        required: true
+        schema:
+          $ref: "#/definitions/MatchSummary"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid ID supplied"
+        404:
+          description: "Match not be found"
+      security:
+      - apiKey: []
+  /matches/team/{teamName}:
+    get:
+      tags:
+      - "matches"
+      summary: "Find this season's schedule for a given team"
       operationId: "findTeamSchedule"
       produces:
       - "application/json"
       parameters:
-      - name: "teamId"
+      - name: "teamName"
         in: "path"
-        description: "ID of the team whose schedule should be fetched"
+        description: "Name of the team whose schedule should be fetched"
         required: true
         type: "integer"
       responses:
@@ -138,11 +191,194 @@ paths:
             items:
               $ref: "#/definitions/Match"
         400:
-          description: "Invalid ID"
+          description: "Invalid team name"
+  /goals:
+    get:
+      tags:
+      - "goals"
+      summary: "All goals for the season"
+      operationId: "goals"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Goal"
+    post:
+      tags:
+      - "goals"
+      summary: "Save a goal"
+      operationId: "saveGoal"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "The goal to save"
+        required: true
+        schema:
+          $ref: "#/definitions/Goal"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid goal"
       security:
-      - snc_auth:
-        - "write:matches"
-        - "read:matches"
+      -  apiKey: []
+  /penalties:
+    get:
+        tags:
+        - "penalties"
+        summary: "All penalties for the season"
+        operationId: "penalties"
+        produces:
+        - "application/json"
+        parameters: []
+        responses:
+          200:
+            description: "successful operation"
+            schema:
+              type: "array"
+              items:
+                $ref: "#/definitions/Penalty"
+    post:
+      tags:
+      - "penalties"
+      summary: "Save a penalty"
+      operationId: "savePenalty"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "The penalty to save"
+        required: true
+        schema:
+          $ref: "#/definitions/Penalty"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid penalty"
+      security:
+      -  apiKey: []
+  /players:
+    get:
+      tags:
+      - "players"
+      summary: "All players league wide"
+      operationId: "players"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Player"
+    post:
+      tags:
+      - "players"
+      summary: "Save a player"
+      operationId: "savePlayer"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "The player to save"
+        required: true
+        schema:
+          $ref: "#/definitions/Player"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid player"
+      security:
+      -  apiKey: []
+  /goalies:
+    get:
+      tags:
+      - "goalies"
+      summary: "All goalies league wide"
+      operationId: "goalies"
+      produces:
+      - "application/json"
+      parameters: []
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Goalie"
+    post:
+      tags:
+      - "goalies"
+      summary: "Save a goalie"
+      operationId: "saveGoalie"
+      consumes:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "The goalie to save"
+        required: true
+        schema:
+          $ref: "#/definitions/Goalie"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid goalie"
+      security:
+      -  apiKey: []
+  /teams:
+    get:
+      tags:
+      - "teams"
+      summary: "Get all teams"
+      operationId: "teams"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "successful operation"
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/Team"
+        404:
+          description: "Team not found"
+    post:
+      tags:
+      - "teams"
+      summary: "Create team"
+      description: "Create a new team"
+      operationId: "createTeam"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      parameters:
+      - in: "body"
+        name: "body"
+        description: "The name to create"
+        required: true
+        schema:
+          $ref: "#/definitions/Team"
+      responses:
+        200:
+          description: "successful operation"
+        400:
+          description: "Invalid team supplied"
   /teams/{teamName}:
     get:
       tags:
@@ -193,18 +429,10 @@ paths:
         404:
           description: "Team not found"
 securityDefinitions:
-  # TODO
-  snc_auth:
-    type: "oauth2"
-    authorizationUrl: "http://petstore.swagger.io/oauth/dialog"
-    flow: "implicit"
-    scopes:
-      write:matches: "Create and update matches"
-      read:matches: "Read the match schedule"
-  api_key:
+  apiKey:
     type: "apiKey"
-    name: "api_key"
     in: "header"
+    name: "X-API-KEY"
 definitions:
   Score:
     type: "object"
@@ -432,13 +660,3 @@ definitions:
           type: "array"
           items:
             $ref: "#/definitions/Goalie"
-  ApiResponse:
-    type: "object"
-    properties:
-      code:
-        type: "integer"
-        format: "int32"
-      type:
-        type: "string"
-      message:
-        type: "string"
