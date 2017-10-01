@@ -4,12 +4,14 @@ http://www.aucklandsnchockey.com/leagues/hockey_boxscores_printable.cfm?clientID
 That is, it is for scraping the match information
 """
 import time
-from players import Goalie, Player
-from parsing_utils import capitalise, parse_date, parse_int
-from match_summary import MatchSummary
-from penalty import Penalty
-from goal import Goal, GoalType
 from functools import reduce
+
+from snc.scraper.goal import Goal, GoalType
+from snc.scraper.match_summary import MatchSummary
+from snc.scraper.parsing_utils import capitalise, parse_date, parse_int
+from snc.scraper.penalty import Penalty
+from snc.scraper.players import Goalie, Player
+
 
 ################################################################################
 # TODO CLEAN UP THIS CODE
@@ -83,6 +85,7 @@ def parse_goals(scoring_summary_elem):
         try:
             # Header row
             row_contents = cells[0].contents[0].contents[0].strip()
+            goal_details = ''
         except AttributeError:
             # Penalty rows have a \n at the 0th index
             row_contents = ''
@@ -104,8 +107,15 @@ def parse_goals(scoring_summary_elem):
             team = team_time[0].lower().strip()
             if '(' in team_time[1]:
                 # Haven't seen what a short handed goal looks like yet
-                goal_type = GoalType.POWER_PLAY
-                team_time[1] = team_time[1][0:-5]
+                idx = team_time[1].index('(')
+                gt = team_time[1][idx+1: idx+2]
+                if gt == 'PP':
+                    goal_type = GoalType.POWER_PLAY
+                elif gt == 'SH':
+                    goal_type = GoalType.SHORTHANDED
+                else:
+                    goal_type = GoalType.REGULAR
+                team_time[1] = team_time[1][0:idx]
             else:
                 goal_type = GoalType.REGULAR
             time_str = team_time[1].strip()
@@ -122,7 +132,7 @@ def parse_goals(scoring_summary_elem):
                 gs = goals[team]
             except KeyError:
                 gs = []
-            gs.append(Goal(type=goal_type,
+            gs.append(Goal(goal_type=goal_type,
                            team=team,
                            period=current_period,
                            goal_time=time_str,
@@ -201,6 +211,7 @@ def parse_penalties(elem):
         try:
             # Header row
             row_contents = cells[0].contents[0].contents[0].strip()
+            penalty_details = ''
         except AttributeError:
             # Penalty rows have a \n at the 0th index
             row_contents = ''
@@ -240,45 +251,29 @@ def parse_penalties(elem):
     return penalties
 
 
-def correct_team_table(title_row, team):
-    """Returns True if the table is for the specified team"""
-    tbl_header = title_row.select('td')[0].contents[0]
-    try:
-        name = tbl_header.contents[0]
-    except AttributeError:
-        name = tbl_header
-    name = name.lower().strip().split(' ')[0]
-    return name == team.lower().strip()
-
-
-def parse_players(elem, team_name):
+def parse_players(elem):
     """Returns a list of players"""
     players = []
     rows = elem.select('tr')
-    if not correct_team_table(rows[0], team_name):
-        raise ValueError('The provided team did not match that found in the '
-                         'table header ')
-    else:
-        for row in rows[2:]:
+    for row in rows[2:]:
+        try:
             cells = row.select('td')
             number = int(cells[0].contents[0].strip())
             name = cells[1].contents[0].strip()
             players.append(Player(
                 number=number,
-                name=name,
-                position='?'))
+                name=name))
+        except ValueError:
+            continue
     return players
 
 
-def parse_goalies(elem, team_name):
+def parse_goalies(elem):
     """Returns a list of goalies"""
     goalies = []
     rows = elem.select('tr')
-    if not correct_team_table(rows[0], team_name):
-        raise ValueError('The provided team did not match that found in the '
-                         'table header ')
-    else:
-        for row in rows[2:]:
+    for row in rows[2:]:
+        try:
             cells = row.select('td')
             number = int(cells[0].contents[0].strip())
             name = cells[1].contents[0].strip()
@@ -286,18 +281,29 @@ def parse_goalies(elem, team_name):
             mins = time.strptime(mins_str, '%M:%S')
             shots_faced = int(cells[3].contents[0].strip())
             saves_made = int(cells[4].contents[0].strip())
+            # Note: These are all on a per game basis and should be combined with the season wide stats in the database
             goalies.append(Goalie(
                 number=number,
-                name=name))
+                name=name,
+                mins=mins,
+                shots_faced=shots_faced,
+                saves_made=saves_made))
+        except ValueError:
+            continue
     return goalies
 
 
 def parse_page(soup):
     """Returns a MatchSummary object that represents the given box score page"""
     tables = soup.select('table.boxscores')
-    teams = parse_teams(tables[0])
-    away = teams['away']
-    home = teams['home']
+    try:
+        teams = parse_teams(tables[0])
+        away = teams['away']
+        home = teams['home']
+    except IndexError:
+        print(soup)
+        raise IndexError('halp')
+
     # tables[5] for scoring summary
     # tables[1] for goals by period and total
     score = parse_scores(tables[1], away, home)
@@ -305,16 +311,19 @@ def parse_page(soup):
     shots_on_goal = parse_shots(tables[2])
     power_plays = parse_power_plays(tables[3])
     details = parse_details(tables[4])
+
     start = parse_start(details['Game Date'], details['Start Time'])
     rink = parse_rink(details['Location'])
     penalties = parse_penalties(tables[6])
 
-    players = {}
-    players[away] = parse_players(tables[7], away)
-    players[home] = parse_players(tables[9], home)
-    goalies = {}
-    goalies[away] = parse_goalies(tables[8], away)
-    goalies[home] = parse_goalies(tables[10], home)
+    players = {
+        away: parse_players(tables[7], away),
+        home: parse_players(tables[9], home)
+    }
+    goalies = {
+        away: parse_goalies(tables[8], away),
+        home: parse_goalies(tables[10], home)
+    }
     return MatchSummary(start=start,
                         rink=rink,
                         away=away,

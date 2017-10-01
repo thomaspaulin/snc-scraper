@@ -1,10 +1,13 @@
 # -*- coding: utf-8 -*-
+from datetime import datetime
+
 from bs4 import BeautifulSoup
-import scrapy
-import snc.scraper.schedule
+from scrapy import Request, FormRequest, Spider
+
 import snc.scraper.boxscore
-import snc.scraper.teams
 import snc.scraper.printable_schedule
+import snc.scraper.schedule
+import snc.scraper.teams
 
 
 ################################################
@@ -17,7 +20,23 @@ import snc.scraper.printable_schedule
 #   pipeline step
 ################################################
 
-class SncSpider(scrapy.Spider):
+def parse_printable_schedule(response):
+    schedule = snc.scraper.printable_schedule.parse(
+        BeautifulSoup(response.text, 'lxml'))
+    # TODO write the utils to some form of data storage
+
+
+def parse_team_page(response):
+    teams = snc.scraper.teams.parse(BeautifulSoup(response.text, 'lxml'))
+    # TODO write the utils to some form of data storage
+
+
+def parse_boxscores(response):
+    snc.scraper.boxscore.parse_page(BeautifulSoup(response.text, 'lxml'))
+    # TODO write out
+
+
+class SncSpider(Spider):
     name = "snc"
     allowed_domains = ["www.aucklandsnchockey.com"]
     start_urls = [
@@ -28,7 +47,7 @@ class SncSpider(scrapy.Spider):
 
     def start_requests(self):
         for url in self.start_urls:
-            return [scrapy.FormRequest(url, callback=self.set_season)]
+            return [FormRequest(url, callback=self.set_season)]
 
     def set_season(self, response):
         """
@@ -71,20 +90,7 @@ class SncSpider(scrapy.Spider):
 
         # Parse the box score URLs
         Request('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341',
-                callback=parse_boxscore_urls)
-
-    def parse_printable_schedule(self, response):
-        schedule = printable_schedule.parse(
-                    BeautifulSoup(response.text, 'lxml'))
-        # TODO write the utils to some form of data storage
-
-    def parse_team_page(self, respoonse):
-        teams = teams.parse(BeautifulSoup(response.text, 'lxml'))
-        # TODO write the utils to some form of data storage
-
-    def parse_boxscores(self, response):
-        boxscore.parse_page(BeautifulSoup(response.text, 'lxml'))
-        # TODO write out
+                callback=self.parse_boxscore_urls)
 
     def parse_boxscore_urls(self, response):
         urls = snc.scraper.schedule.parse_boxscore_urls(
@@ -92,4 +98,4 @@ class SncSpider(scrapy.Spider):
             self.base_url)
 
         for url in urls:
-            yield Request(url, callback=boxscore.parse_boxscores)
+            yield Request(url, callback=parse_boxscores)

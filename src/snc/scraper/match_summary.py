@@ -29,24 +29,30 @@ class MatchSummary:
                  home,
                  away_score=0,
                  home_score=0,
-                 goals=[],
-                 shots=[],
-                 power_plays=[],
-                 penalties=[],
-                 players=[],
-                 goalies=[]):
+                 goals=None,
+                 shots=None,
+                 power_plays=None,
+                 penalties=None,
+                 players=None,
+                 goalies=None):
         self.start = start
         self.rink = rink
         self.away = away
         self.home = home
         self.away_score = away_score
         self.home_score = home_score
-        self.goals = goals
-        self.shots = shots
-        self.power_plays = power_plays
-        self.penalties = penalties
-        self.players = players
-        self.goalies = goalies
+        if goals is not None:
+            self.goals = goals
+        if shots is not None:
+            self.shots = shots
+        if power_plays is not None:
+            self.power_plays = power_plays
+        if penalties is not None:
+            self.penalties = penalties
+        if players is not None:
+            self.players = players
+        if goalies is not None:
+            self.goalies = goalies
 
     def __str__(self):
         s = '{} - {} {} vs. {} {} at {}\n'.format(
