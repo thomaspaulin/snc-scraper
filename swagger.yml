@@ -503,6 +503,7 @@ definitions:
     required:
     - "type"
     - "team"
+    - "period"
     - "time"
     - "scorer"
     properties:
@@ -512,11 +513,15 @@ definitions:
       type:
         type: "string"
         enum:
-        - "PR"
-        - "RS"
-        - "PO"
+        - "RG"
+        - "PP"
+        - "SH"
       team:
         $ref: "#/definitions/Team" # consider just using the ID instead
+      period:
+        type: "integer"
+        format: "int32"
+        description: "The period the goal was scored during"
       time:
         type: "integer"
         format: "int32"
