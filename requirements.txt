@@ -36,4 +36,3 @@ Twisted==17.1.0
 w3lib==1.17.0
 wrapt==1.10.11
 zope.interface==4.3.3
-git+https://github.com/thomaspaulin/snc-swagger-py.git

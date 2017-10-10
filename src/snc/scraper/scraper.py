@@ -3,6 +3,10 @@ from _datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
+from snc.scraper.team import Team
+from snc.scraper.match import Match, MatchType
+from snc.scraper.match_summary import MatchSummary
+
 import snc.scraper.boxscore as boxscore
 import snc.scraper.printable_schedule as printable
 import snc.scraper.schedule as sched
@@ -69,5 +73,63 @@ def scrape_everything():
         for boxscore_url in boxscore_urls:
             boxscore_res = requests.get(boxscore_url)
             match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml')))
-    #print(match_summaries)
 
+    print('=============================================================================')
+    print('SCRAPING FINISHED')
+    print('=============================================================================')
+
+    print('=============================================================================')
+    print('STARTING API REQUESTS')
+    print('=============================================================================')
+    saveTeams(parsed_teams)
+    saveMatches(schedule)
+    saveSummaries(match_summaries)
+
+
+def test_api():
+    # todo create some teams, matches, match sumamries to test with
+    snc_teams = [
+        Team(name='Bears', division='C', logo_url='test'),
+        Team(name='Grizzlies', division='B', logo_url='test2'),
+        Team(name='Hawks', division='C', logo_url='test3')
+    ]
+    saveTeams(snc_teams)
+
+    matches = [
+        Match(game_type=MatchType.PRACTICE,
+              season=2017,
+              away=snc_teams[0],
+              home=snc_teams[1],
+              rink='Avondale'),
+        Match(game_type=MatchType.REGULAR_SEASON,
+              season=2017,
+              away=snc_teams[2],
+              home=snc_teams[1],
+              away_score=1,
+              home_score=3,
+              rink='Botany')
+    ]
+    saveMatches(matches)
+
+    # TODO test with players and everything
+    summaries = [
+        MatchSummary(start=datetime.utcnow(),
+                     rink='Avondale',
+                     away=snc_teams[2],
+                     home=snc_teams[1],
+                     away_score=1,
+                     home_score=3)
+    ]
+    saveSummaries(summaries)
+
+
+def saveTeams(teams=None):
+    pass
+
+
+def saveMatches(schedule):
+    pass
+
+
+def saveSummaries(summaries):
+    pass
