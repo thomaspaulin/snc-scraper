@@ -1,3 +1,5 @@
+from snc.scraper.division import Division
+
 class Team:
     """A hockey Team
 
@@ -17,8 +19,8 @@ class Team:
     def __init__(self,
                  *,
                  name,
-                 division,
-                 logo_url,
+                 division=None,
+                 logo_url=None,
                  record=(0, 0, 0),
                  points=0):
         self.name = name
@@ -33,6 +35,21 @@ class Team:
                 + record[1] * self.__pointAllocation[1]
                 + record[2] * self.__pointAllocation[2]
             )
+
+    def dump(self):
+        if self.division is None:
+            div = {}
+        else:
+            div = self.division.dump()
+        return {'name': self.name,
+                'division': div,
+                'logoURL': self.logo_url}
+
+    @staticmethod
+    def load(json):
+        return Team(name=json['name'],
+                    division=Division.load(json['division']),
+                    logo_url=json['logoURL'])
 
     def __str__(self):
         return '{} {}'.format(self.name, self.record)

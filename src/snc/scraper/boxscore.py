@@ -4,6 +4,7 @@ http://www.aucklandsnchockey.com/leagues/hockey_boxscores_printable.cfm?clientID
 That is, it is for scraping the match information
 """
 import time
+
 from functools import reduce
 
 from snc.scraper.goal import Goal, GoalType
@@ -317,12 +318,12 @@ def parse_page(soup):
     penalties = parse_penalties(tables[6])
 
     players = {
-        away: parse_players(tables[7], away),
-        home: parse_players(tables[9], home)
+        away: parse_players(tables[7]),
+        home: parse_players(tables[9])
     }
     goalies = {
-        away: parse_goalies(tables[8], away),
-        home: parse_goalies(tables[10], home)
+        away: parse_goalies(tables[8]),
+        home: parse_goalies(tables[10])
     }
     return MatchSummary(start=start,
                         rink=rink,

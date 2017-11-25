@@ -10,6 +10,13 @@ class Division:
                  name):
         self.name = name
 
+    def dump(self):
+        return self.__dict__
+
+    @staticmethod
+    def load(json):
+        return Division(name=json['name'])
+
     def __str__(self):
         return '{}'.format(self.name)
 

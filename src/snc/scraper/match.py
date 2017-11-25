@@ -1,7 +1,9 @@
-from datetime import datetime
+import pytz
+from datetime import datetime, timedelta
 from enum import Enum
 
 import snc.scraper.parsing_utils as util
+from snc.scraper.division import Division
 
 
 class MatchType(Enum):
@@ -35,6 +37,8 @@ class Match:
                  away_score=None,
                  home_score=None,
                  rink):
+
+        now = datetime.utcnow()
         if type(game_type) is str:
             for name, value in [(e.name, e.value) for e in MatchType]:
                 if value == game_type:
@@ -49,11 +53,40 @@ class Match:
             self.start = util.parse_date(start, '%Y-%m-%dT%H:%M:%SZ')
         else:
             self.start = start
+        if start + timedelta(hours=1) < now.replace(tzinfo=pytz.UTC):
+            self.status = "Over"
+        elif start <= now.replace(tzinfo=pytz.UTC) and start + timedelta(hours=1) <= now.replace(tzinfo=pytz.UTC):
+            self.status = "Underway"
+        else:
+            self.status = "Upcoming"
         self.away = away
         self.home = home
+        if away.division is not None:
+            self.division = away.division
+        elif home.division is not None:
+            self.division = home.division
+        else:
+            self.division = Division(name='Unknown')
         self.away_score = away_score
         self.home_score = home_score
         self.rink = rink
+
+    def dump(self):
+        time = datetime.strftime(self.start, '%Y-%m-%dT%H:%M:%SZ')
+        return {'start': time,
+                'season': self.season,
+                'status': self.status,
+                'division': self.division.dump(),
+                'away': self.away.dump(),
+                'home': self.home.dump(),
+                'awayScore': self.away_score,
+                'homeScore': self.home_score,
+                'rink': self.rink.dump()}
+
+    @staticmethod
+    def load(json):
+        # todo
+        pass
 
     def __str__(self):
         time = datetime.strftime(self.start, '%Y-%m-%dT%H:%M:%SZ')

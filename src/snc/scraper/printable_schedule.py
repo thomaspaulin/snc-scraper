@@ -1,6 +1,10 @@
 import bs4
-from snc.scraper.parsing_utils import parse_schedule_date
+
 from snc.scraper.match import Match, MatchType
+from snc.scraper.parsing_utils import parse_schedule_date
+from snc.scraper.rink import Rink
+from snc.scraper.teams import Team
+
 """
 For parsing
 http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1
@@ -58,11 +62,11 @@ def parse_row(row_elem):
         # In the format SA 18-Mar-2017 4:30P
         date = parse_schedule_date(tds[1].contents[0].strip() + ' ' + tds[2].contents[0].strip())
         # practice and regular season
-        away = parse_team(tds[3].contents[0])
+        away = Team(name=parse_team(tds[3].contents[0]))
         away_score = parse_score(tds[4].contents[0])
-        home = parse_team(tds[5].contents[0])
+        home = Team(name=parse_team(tds[5].contents[0]))
         home_score = parse_score(tds[6].contents[0])
-        rink = parse_rink(tds[7].contents[0])
+        rink = Rink(name=parse_rink(tds[7].contents[0]))
 
         return Match(game_type=game_type[game_type_acronym],
                      season=date.year,

@@ -1,22 +1,29 @@
 from _datetime import datetime
 
+import json
+import logging
+import pytz
 import requests
 from bs4 import BeautifulSoup
-
-from snc.scraper.division import Division
-from snc.scraper.team import Team
-from snc.scraper.match import Match, MatchType
-from snc.scraper.match_summary import MatchSummary
 
 import snc.scraper.boxscore as boxscore
 import snc.scraper.printable_schedule as printable
 import snc.scraper.schedule as sched
 import snc.scraper.teams as teams
+from snc.scraper.division import Division
+from snc.scraper.match import Match, MatchType
+from snc.scraper.match_summary import MatchSummary
+from snc.scraper.rink import Rink
+from snc.scraper.team import Team
 
 base_url = 'http://www.aucklandsnchockey.com/leagues/'
+api_url = 'https://snc-api.herokuapp.com/api/v0'
+
+l = logging.getLogger('scraper')
 
 
 def scrape_everything():
+    l.setLevel(logging.DEBUG)
     print('=============================================================================')
     print('SCRAPING START')
     print('=============================================================================')
@@ -44,7 +51,7 @@ def scrape_everything():
     print('Using season with ID: {}'.format(season_id))
     if season_id is not None:
         requests.post('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341',
-                            data={selector_name, season_id})
+                      data={selector_name, season_id})
 
     # TEAMS
     print('-----------------------------------------------------------------------------')
@@ -82,55 +89,87 @@ def scrape_everything():
     print('=============================================================================')
     print('STARTING API REQUESTS')
     print('=============================================================================')
-    saveTeams(parsed_teams)
-    saveMatches(schedule)
-    saveSummaries(match_summaries)
+    save_teams(parsed_teams)
+    save_matches(schedule)
+    save_summaries(match_summaries)
 
 
 def test_api():
+    l.setLevel(logging.DEBUG)
+    snc_divisions = [
+        Division(name='Python C'),
+        Division(name='Python B')
+    ]
+    # saveDivisions(snc_divisions)
+
     # todo create some teams, matches, match sumamries to test with
     snc_teams = [
-        Team(name='Bears', division=Division(name='C'), logo_url='test'),
-        Team(name='Grizzlies', division=Division(name='B'), logo_url='test2'),
-        Team(name='Hawks', division=Division(name='C'), logo_url='test3')
+        Team(name='Python Bears', division=Division(name='Python C'), logo_url='test'),
+        Team(name='Python Grizzlies', division=Division(name='Python B'), logo_url='test2'),
+        Team(name='Python Hawks', division=Division(name='Python C'), logo_url='test3')
     ]
-    saveTeams(snc_teams)
+    # saveTeams(snc_teams)
 
     matches = [
         Match(game_type=MatchType.PRACTICE,
+              start=datetime.now().replace(tzinfo=pytz.UTC),
               season=2017,
               away=snc_teams[0],
               home=snc_teams[1],
-              rink='Avondale'),
+              rink=Rink(name='Python Avondale')),
         Match(game_type=MatchType.REGULAR_SEASON,
               season=2017,
+              start=datetime.now().replace(tzinfo=pytz.UTC),
               away=snc_teams[2],
               home=snc_teams[1],
               away_score=1,
               home_score=3,
-              rink='Botany')
+              rink=Rink(name='Python Botany'))
     ]
-    saveMatches(matches)
+    save_matches(matches)
 
     # TODO test with players and everything
     summaries = [
-        MatchSummary(start=datetime.utcnow(),
-                     rink='Avondale',
+        MatchSummary(start=datetime.utcnow().replace(tzinfo=pytz.UTC),
+                     rink=Rink(name='Python Avondale'),
                      away=snc_teams[2],
                      home=snc_teams[1],
                      away_score=1,
                      home_score=3)
     ]
-    saveSummaries(summaries)
+    save_summaries(summaries)
 
 
-def saveTeams(teams=None):
+def submit(a_url, a_list):
+    """Submits to the server. The list items must know how to serialise themselves"""
+    for i in a_list:
+        try:
+            payload = json.dumps(i.dump())
+        except AttributeError:
+            print('Submit called on a None type')
+            payload = {}
+        l.debug(payload)
+        requests.post(a_url, data=payload)
+
+
+def save_divisions(divisions=None):
     pass
+#     divisions_url = '{}/divisions'.format(api_url)
+#     submit(divisions_url, divisions)
 
 
-def saveMatches(schedule):
+def save_teams(teams=None):
     pass
+#     teams_url = '{}/teams'.format(api_url)
+#     submit(teams_url, teams)
 
 
-def saveSummaries(summaries):
+def save_matches(schedule=None):
+    matches_url = '{}/matches'.format(api_url)
+    submit(matches_url, schedule)
+    # pass
+
+
+def save_summaries(summaries=None):
+    # not supported on server yet
     pass
