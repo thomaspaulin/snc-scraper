@@ -7,7 +7,7 @@ class Division:
 
     def __init__(self,
                  *,
-                 name):
+                 name: str):
         self.name = name
 
     def dump(self):

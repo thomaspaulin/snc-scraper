@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from pytz import timezone, utc
 
 
-def capitalise(string):
+def capitalise(string) -> str:
     words = string.strip().lower().split(' ')
     upper_words = []
     for word in words:
@@ -10,19 +10,19 @@ def capitalise(string):
     return ' '.join(upper_words)
 
 
-def parse_date(date_str, str_format):
+def parse_date(date_str, str_format) -> datetime:
     tz = timezone("Pacific/Auckland")
     return tz.localize(datetime.strptime(date_str, str_format))
 
 
-def parse_int(int_str, default):
+def parse_int(int_str, default) -> int:
     try:
         return int(int_str)
     except ValueError:
         return default
 
 
-def parse_schedule_date(date_str):
+def parse_schedule_date(date_str) -> datetime:
     """Returns a date parsed from a date string in the format In the format
     SA 18-Mar-2017 4:30P. Dates parsed will be in UTC"""
     ds = date_str.strip() + 'M'

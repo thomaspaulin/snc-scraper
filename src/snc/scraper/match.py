@@ -1,9 +1,11 @@
-import pytz
 from datetime import datetime, timedelta
 from enum import Enum
 
+import pytz
+
 import snc.scraper.parsing_utils as util
-from snc.scraper.division import Division
+from snc.scraper.rink import Rink
+from snc.scraper.team import Team
 
 
 class MatchType(Enum):
@@ -29,14 +31,15 @@ class Match:
     """
     def __init__(self,
                  *,
-                 game_type=MatchType.REGULAR_SEASON,
-                 season=datetime.utcnow().year,
-                 start=datetime.utcnow(),
-                 away,
-                 home,
-                 away_score=None,
-                 home_score=None,
-                 rink):
+                 game_type: MatchType =MatchType.REGULAR_SEASON,
+                 season: int =datetime.utcnow().year,
+                 start: datetime =datetime.utcnow(),
+                 division_name: str = None,
+                 away: Team,
+                 home: Team,
+                 away_score: int = None,
+                 home_score: int = None,
+                 rink: Rink):
 
         now = datetime.utcnow()
         if type(game_type) is str:
@@ -61,12 +64,14 @@ class Match:
             self.status = "Upcoming"
         self.away = away
         self.home = home
-        if away.division is not None:
-            self.division = away.division
-        elif home.division is not None:
-            self.division = home.division
+        if division_name is not None:
+            self.division_name = division_name
+        elif away.division_name is not None:
+            self.division_name = away.division_name
+        elif home.division_name is not None:
+            self.division_name = home.division_name
         else:
-            self.division = Division(name='Unknown')
+            self.division_name = 'Unknown'
         self.away_score = away_score
         self.home_score = home_score
         self.rink = rink
@@ -76,7 +81,7 @@ class Match:
         return {'start': time,
                 'season': self.season,
                 'status': self.status,
-                'division': self.division.dump(),
+                'division': self.division_name,
                 'away': self.away.dump(),
                 'home': self.home.dump(),
                 'awayScore': self.away_score,

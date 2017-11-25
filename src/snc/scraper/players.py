@@ -10,9 +10,9 @@ class Player:
     """
     def __init__(self,
                  *,
-                 number,
-                 name,
-                 position='?'):
+                 number: int,
+                 name: str,
+                 position: str ='?'):
         self.number = number
         self.name = name
         self.position = position
@@ -35,17 +35,17 @@ class Goalie:
     """
     def __init__(self,
                  *,
-                 number,
-                 name,
-                 mins=0,
-                 shots_faced=0,
-                 saves_made=0):
+                 number: int,
+                 name: str,
+                 mins: int = 0,
+                 shots_faced: int = 0,
+                 saves_made: int = 0):
         self.number = number
         self.name = name
         self.mins = mins
         self.shots_faced = shots_faced
         self.saves_made = saves_made
-        self.save_pct = saves_made / shots_faced
+        self.save_pct: float = saves_made / shots_faced
 
     def __str__(self):
         return '#{} {} G'.format(self.number, self.name)

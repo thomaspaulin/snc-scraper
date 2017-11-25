@@ -15,12 +15,13 @@ class Penalty:
     """
     def __init__(self,
                  *,
-                 offense,
-                 period,
-                 penalty_time,
-                 team,
-                 offender,
-                 pim=2):
+                 offense: str,
+                 period: int,
+                 penalty_time: int,
+                 team: str,
+                 offender: str,
+                 pim: int = 2):
+        # todo type team and offender properly
         self.offense = offense
         self.period = period
         try:
