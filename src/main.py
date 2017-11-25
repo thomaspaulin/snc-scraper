@@ -19,15 +19,14 @@ def get_known_teams() -> Dict[str, Team]:
     return t
 
 
-def get_known_divisions() -> Dict[str, Division]:
-    r = requests.get("{}/divisions".format(API_URL))
-    if r.status_code is not 200:
-        return {}
-    d = {}
-    for json in r.json():
-        div = Division.load(json)
-        d[div.name.lower()] = div
-    return d
+# def get_known_divisions() -> Dict[str, Division]:
+    # r = requests.get("{}/divisions".format(API_URL))
+    # if r.status_code is not 200:
+    #     return {}
+    # d = {}
+    # for json in r.json():
+    #     div = Division.load(json)
+    #     d[div.name.lower()] = div
 
 
 if __name__ == '__main__':
@@ -38,9 +37,9 @@ if __name__ == '__main__':
     requests_log.propagate = True
 
     teams = get_known_teams()
-    divisions = get_known_divisions()
+    divisions = {} #get_known_divisions()
 
-    bs_scraper.scrape_everything(teams, divisions)
-    # bs_scraper.test_api(teams, divisions)
+    # bs_scraper.scrape_everything(teams, divisions)
+    bs_scraper.test_api(teams, divisions)
 
     # todo the client has to make server calls to decide whether to put or post. Server is basic right now and won't do those check

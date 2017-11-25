@@ -6,6 +6,12 @@ from snc.scraper.players import Player
 from snc.scraper.team import Team
 
 
+class GoalType(Enum):
+    REGULAR = 'RG'
+    POWER_PLAY = 'PP'
+    SHORTHANDED = 'SHG'
+
+
 class Goal:
     """Represents a Goal
 
@@ -58,9 +64,3 @@ class Goal:
 
     def __repr__(self):
         return self.__str__()
-
-
-class GoalType(Enum):
-    REGULAR = 'RG'
-    POWER_PLAY = 'PP'
-    SHORTHANDED = 'SHG'
