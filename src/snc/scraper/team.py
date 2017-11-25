@@ -1,5 +1,3 @@
-from snc.scraper.division import Division
-
 class Team:
     """A hockey Team
 
@@ -38,17 +36,21 @@ class Team:
 
     def dump(self):
         return {'name': self.name,
-                'division': self.division_name,
+                'divisionName': self.division_name,
                 'logoURL': self.logo_url}
 
     @staticmethod
     def load(json):
         try:
-            logo_url = json['logoURL']
+            logo_url: str = json['logoURL']
         except KeyError:
-            logo_url = ''
+            logo_url: str = ''
+        try:
+            div_name: str = json['divisionName']
+        except KeyError:
+            div_name: str = 'Unknown'
         return Team(name=json['name'],
-                    division_name=json['divisionName'],
+                    division_name=div_name,
                     logo_url=logo_url)
 
     def __str__(self):
