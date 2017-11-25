@@ -60,15 +60,15 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     teams_res = requests.get('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788')
     parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
     l.debug(parsed_teams)
-    #
-    # l.info('-----------------------------------------------------------------------------')
-    # l.info('BEGIN SCRAPING: Schedule')
-    # l.info('-----------------------------------------------------------------------------')
-    # # SCHEDULE
-    # printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
-    # schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
-    # l.debug(schedule)
-    #
+
+    l.info('-----------------------------------------------------------------------------')
+    l.info('BEGIN SCRAPING: Schedule')
+    l.info('-----------------------------------------------------------------------------')
+    # SCHEDULE
+    printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
+    schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
+    l.debug(schedule)
+
     # l.info('-----------------------------------------------------------------------------')
     # l.info('BEGIN SCRAPING: Schedule URLs')
     # l.info('-----------------------------------------------------------------------------')
@@ -97,8 +97,8 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     ])
     l.debug('Saving teams')
     save_teams(parsed_teams)
-    # l.debug('Saving schedule')
-    # save_matches(schedule)
+    l.debug('Saving schedule')
+    save_matches(schedule)
     # save_summaries(match_summaries)
 
 

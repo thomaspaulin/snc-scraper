@@ -39,7 +39,7 @@ if __name__ == '__main__':
     teams = get_known_teams()
     divisions = {} #get_known_divisions()
 
-    # bs_scraper.scrape_everything(teams, divisions)
-    bs_scraper.test_api(teams, divisions)
+    bs_scraper.scrape_everything(teams, divisions)
+    # bs_scraper.test_api(teams, divisions)
 
     # todo the client has to make server calls to decide whether to put or post. Server is basic right now and won't do those check
