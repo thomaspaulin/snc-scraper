@@ -24,9 +24,9 @@ l = logging.getLogger('scraper')
 
 def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, Division]) -> None:
     l.setLevel(logging.DEBUG)
-    print('=============================================================================')
-    print('SCRAPING START')
-    print('=============================================================================')
+    l.info('=============================================================================')
+    l.info('SCRAPING START')
+    l.info('=============================================================================')
     res = requests.get('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341')
     soup = BeautifulSoup(res.text, 'lxml')
 
@@ -48,30 +48,30 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     # TODO EXPORT THE SEASON ID HERE FOR OTHERS TO KNOW ABOUT THEN IMPLEMENT THIS READING THE EXPORTED SEASONS (AS A CACHE)
     # Submit the season ID to get the one we are interested in
     # then start parsing
-    print('Using season with ID: {}'.format(season_id))
+    l.info('Using season with ID: {}'.format(season_id))
     if season_id is not None:
         requests.post('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341',
                       data={selector_name, season_id})
 
     # TEAMS
-    print('-----------------------------------------------------------------------------')
-    print('BEGIN SCRAPING: Teams')
-    print('-----------------------------------------------------------------------------')
+    l.info('-----------------------------------------------------------------------------')
+    l.info('BEGIN SCRAPING: Teams')
+    l.info('-----------------------------------------------------------------------------')
     teams_res = requests.get('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788')
     parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
-    print(parsed_teams)
+    l.debug(parsed_teams)
     #
-    # print('-----------------------------------------------------------------------------')
-    # print('BEGIN SCRAPING: Schedule')
-    # print('-----------------------------------------------------------------------------')
+    # l.info('-----------------------------------------------------------------------------')
+    # l.info('BEGIN SCRAPING: Schedule')
+    # l.info('-----------------------------------------------------------------------------')
     # # SCHEDULE
     # printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
     # schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
-    # print(schedule)
+    # l.debug(schedule)
     #
-    # print('-----------------------------------------------------------------------------')
-    # print('BEGIN SCRAPING: Schedule URLs')
-    # print('-----------------------------------------------------------------------------')
+    # l.info('-----------------------------------------------------------------------------')
+    # l.info('BEGIN SCRAPING: Schedule URLs')
+    # l.info('-----------------------------------------------------------------------------')
     # # BOXSCORES
     # schedule_page_urls = sched.get_schedule_urls(start_month=9, end_month=9)
     # match_summaries = []
@@ -82,15 +82,22 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     #         boxscore_res = requests.get(boxscore_url)
     #         match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml'), known_teams))
 
-    print('=============================================================================')
-    print('SCRAPING FINISHED')
-    print('=============================================================================')
+    l.info('=============================================================================')
+    l.info('SCRAPING FINISHED')
+    l.info('=============================================================================')
 
-    print('=============================================================================')
-    print('STARTING API REQUESTS')
-    print('=============================================================================')
-    save_divisions()
+    l.info('=============================================================================')
+    l.info('STARTING API REQUESTS')
+    l.info('=============================================================================')
+    l.debug('Warning: Not parsing divisions, instead using A, B, and C')
+    save_divisions([
+        Division(name="A"),
+        Division(name="B"),
+        Division(name="C"),
+    ])
+    l.debug('Saving teams')
     save_teams(parsed_teams)
+    # l.debug('Saving schedule')
     # save_matches(schedule)
     # save_summaries(match_summaries)
 
