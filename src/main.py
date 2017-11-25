@@ -9,6 +9,8 @@ from snc.scraper.division import Division
 
 def get_known_teams():
     r = requests.get("{}/teams".format(API_URL))
+    if r.status_code is not 200:
+        return []
     t = {}
     for json in r.json():
         team = Team.load(json)
@@ -18,11 +20,13 @@ def get_known_teams():
 
 def get_known_divisions():
     r = requests.get("{}/divisions".format(API_URL))
-    t = {}
+    if r.status_code is not 200:
+        return []
+    d = {}
     for json in r.json():
         div = Division.load(json)
-        t[div.name.lower()] = div
-    return t
+        d[div.name.lower()] = div
+    return d
 
 
 if __name__ == '__main__':
