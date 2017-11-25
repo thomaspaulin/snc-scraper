@@ -120,14 +120,14 @@ def test_api(known_teams: Dict[str, Team], known_divisions: Dict[str, Division])
 
     matches = [
         Match(game_type=MatchType.PRACTICE,
-              start=datetime.now().replace(tzinfo=pytz.UTC),
+              start=datetime(2017, 3, 24, 16, 30, 0, 0).replace(tzinfo=pytz.UTC),
               season=2017,
               away=snc_teams[0],
               home=snc_teams[1],
               rink=Rink(name='Python Avondale')),
         Match(game_type=MatchType.REGULAR_SEASON,
               season=2017,
-              start=datetime.now().replace(tzinfo=pytz.UTC),
+              start=datetime(2017, 3, 25, 16, 30, 0, 0).replace(tzinfo=pytz.UTC),
               away=snc_teams[2],
               home=snc_teams[1],
               away_score=1,
