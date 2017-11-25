@@ -26,14 +26,14 @@ def parse_teams(elem, known_teams):
     """Returns the teams involved in the match"""
     cell = elem.select('tr')[1:2][0]
     away = cell.contents[1].select('font')[0].contents[0].contents[0].strip()
-    if known_teams[away.lower()] is not None:
+    try:
         away = known_teams[away.lower()]
-    else:
+    except KeyError:
         away = Team(name=capitalise(away), division=Division(name='Unknown'))
     home = cell.contents[4].select('font')[0].contents[0].contents[0].strip()
-    if known_teams[home.lower()] is not None:
+    try:
         home = known_teams[home.lower()]
-    else:
+    except KeyError:
         home = Team(name=capitalise(home), division=Division(name='Unknown'))
     return {'away': away, 'home': home}
 

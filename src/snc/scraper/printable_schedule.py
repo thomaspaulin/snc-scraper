@@ -36,9 +36,9 @@ def parse_team(team_elem, known_teams):
         name = team_elem.strip()
     except TypeError:
         name = team_elem.select('b')[0].contents[0].strip()
-    if known_teams[name.lower()] is not None:
+    try:
         return known_teams[name.lower()]
-    else:
+    except KeyError:
         print("The server does not know about team {}.".format(name))
         return Team(name=name,
                     division=Division(name='Unknown'))

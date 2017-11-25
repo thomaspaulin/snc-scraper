@@ -28,9 +28,9 @@ def parse_team(team_elem, division, known_teams):
     rows = team_elem.select('tr')
     # row 1 is logo, name, and links to stats, roster, and staff/personnel
     name = util.capitalise(parse_name(rows[0].select('td')[1]))
-    if known_teams[name.lower()] is not None:
+    try:
         return known_teams[name.lower()]
-    else:
+    except KeyError:
         print("The server does not know about team {}.".format(name))
     logo_url = parse_logo(rows[0].select('td')[0])
     # row 2 is current record and next home game
@@ -45,9 +45,9 @@ def parse_division(header_elem, known_divisions):
     title = header_elem.select('b')[0].contents[0]
     # title should look like `SNC - B League Competition`
     name = title.split('-')[1].strip()[0:1]
-    if known_divisions[name.lower()] is not None:
+    try:
         return known_divisions[name.lower()]
-    else:
+    except KeyError:
         print("The server does not know about team {}.".format(name))
     return Division(name=name)
 
