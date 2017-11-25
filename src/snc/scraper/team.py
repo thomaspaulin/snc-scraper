@@ -3,6 +3,7 @@ class Team:
 
     Attributes:
         name                The team's name
+        division            The division the team is in
         logo_url            The URL of the team's logo
         record              The wins, loses, ties, of the team for the season
         points              How many points the team has. Based of their record

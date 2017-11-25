@@ -3,6 +3,7 @@ from _datetime import datetime
 import requests
 from bs4 import BeautifulSoup
 
+from snc.scraper.division import Division
 from snc.scraper.team import Team
 from snc.scraper.match import Match, MatchType
 from snc.scraper.match_summary import MatchSummary
@@ -89,9 +90,9 @@ def scrape_everything():
 def test_api():
     # todo create some teams, matches, match sumamries to test with
     snc_teams = [
-        Team(name='Bears', division='C', logo_url='test'),
-        Team(name='Grizzlies', division='B', logo_url='test2'),
-        Team(name='Hawks', division='C', logo_url='test3')
+        Team(name='Bears', division=Division(name='C'), logo_url='test'),
+        Team(name='Grizzlies', division=Division(name='B'), logo_url='test2'),
+        Team(name='Hawks', division=Division(name='C'), logo_url='test3')
     ]
     saveTeams(snc_teams)
 

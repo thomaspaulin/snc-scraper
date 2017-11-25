@@ -1,5 +1,6 @@
 import snc.scraper.parsing_utils as util
 from snc.scraper.team import Team
+from snc.scraper.division import Division
 
 """
 # For parsing
@@ -39,16 +40,17 @@ def parse_team(team_elem, division):
 
 
 def parse_division(header_elem):
+    """Returns the division parsed from the team page section header"""
     title = header_elem.select('b')[0].contents[0]
     # title should look like `SNC - B League Competition`
-    return title.split('-')[1].strip()[0:1]
+    return Division(name=title.split('-')[1].strip()[0:1])
 
 
 def parse(soup):
     """Returns the teams in the league that could be parsed"""
     parsed_teams = []
     team_elems = soup.select('div > table.boxscores')[1:]
-    current_division = 'A'
+    current_division = Division(name='Unknown')
     for elem in team_elems:
         if len(elem.select('font')) is not 0:
             current_division = parse_division(elem)
