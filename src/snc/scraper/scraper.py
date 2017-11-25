@@ -15,14 +15,12 @@ from snc.scraper.match import Match, MatchType
 from snc.scraper.match_summary import MatchSummary
 from snc.scraper.rink import Rink
 from snc.scraper.team import Team
-
-base_url = 'http://www.aucklandsnchockey.com/leagues/'
-api_url = 'https://snc-api.herokuapp.com/api/v0'
+from snc.scraper.constants import *
 
 l = logging.getLogger('scraper')
 
 
-def scrape_everything():
+def scrape_everything(known_teams, known_divisions):
     l.setLevel(logging.DEBUG)
     print('=============================================================================')
     print('SCRAPING START')
@@ -58,7 +56,7 @@ def scrape_everything():
     print('BEGIN SCRAPING: Teams')
     print('-----------------------------------------------------------------------------')
     teams_res = requests.get('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788')
-    parsed_teams = teams.parse(BeautifulSoup(teams_res.text, 'lxml'))
+    parsed_teams = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
     print(parsed_teams)
 
     print('-----------------------------------------------------------------------------')
@@ -66,7 +64,7 @@ def scrape_everything():
     print('-----------------------------------------------------------------------------')
     # SCHEDULE
     printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
-    schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'))
+    schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
     print(schedule)
 
     print('-----------------------------------------------------------------------------')
@@ -77,10 +75,10 @@ def scrape_everything():
     match_summaries = []
     for schedule_page_url in schedule_page_urls:
         schedule_page_res = requests.get(schedule_page_url)
-        boxscore_urls = sched.parse_boxscore_urls(BeautifulSoup(schedule_page_res.text, 'lxml'), base_url)
+        boxscore_urls = sched.parse_boxscore_urls(BeautifulSoup(schedule_page_res.text, 'lxml'), BASE_URL)
         for boxscore_url in boxscore_urls:
             boxscore_res = requests.get(boxscore_url)
-            match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml')))
+            match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml'), known_teams))
 
     print('=============================================================================')
     print('SCRAPING FINISHED')
@@ -94,7 +92,7 @@ def scrape_everything():
     save_summaries(match_summaries)
 
 
-def test_api():
+def test_api(known_teams, known_divisions):
     l.setLevel(logging.DEBUG)
     snc_divisions = [
         Division(name='Python C'),
@@ -165,7 +163,7 @@ def save_teams(teams=None):
 
 
 def save_matches(schedule=None):
-    matches_url = '{}/matches'.format(api_url)
+    matches_url = '{}/matches'.format(API_URL)
     submit(matches_url, schedule)
     # pass
 

@@ -47,9 +47,13 @@ class Team:
 
     @staticmethod
     def load(json):
+        try:
+            logo_url = json['logoURL']
+        except KeyError:
+            logo_url = ''
         return Team(name=json['name'],
                     division=Division.load(json['division']),
-                    logo_url=json['logoURL'])
+                    logo_url=logo_url)
 
     def __str__(self):
         return '{} {}'.format(self.name, self.record)

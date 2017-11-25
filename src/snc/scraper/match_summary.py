@@ -57,11 +57,11 @@ class MatchSummary:
     def __str__(self):
         s = '{} - {} {} vs. {} {} at {}\n'.format(
                                                 self.start,
-                                                self.away,
+                                                self.away.name,
                                                 self.away_score,
                                                 self.home_score,
-                                                self.home,
-                                                self.rink)
+                                                self.home.name,
+                                                self.rink.name)
         s += '---------------------------------------------------\n'
         s += 'Goals: {}\n'.format(self.goals)
         s += 'Shots: {}\n'.format(self.shots)

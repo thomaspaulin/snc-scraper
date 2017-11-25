@@ -2,6 +2,7 @@ import bs4
 
 from snc.scraper.match import Match, MatchType
 from snc.scraper.parsing_utils import parse_schedule_date
+from snc.scraper.division import Division
 from snc.scraper.rink import Rink
 from snc.scraper.teams import Team
 
@@ -27,14 +28,20 @@ def parse_score(score_elem):
             return -1
 
 
-def parse_team(team_elem):
+def parse_team(team_elem, known_teams):
     """Returns the team name parsed from the provided bs4 Tag"""
     if isinstance(team_elem, bs4.element.Tag):
         team_elem = team_elem.contents[0]
     try:
-        return team_elem.strip()
+        name = team_elem.strip()
     except TypeError:
-        return team_elem.select('b')[0].contents[0].strip()
+        name = team_elem.select('b')[0].contents[0].strip()
+    if known_teams[name.lower()] is not None:
+        return known_teams[name.lower()]
+    else:
+        print("The server does not know about team {}.".format(name))
+        return Team(name=name,
+                    division=Division(name='Unknown'))
 
 
 def parse_rink(rink_elem):
@@ -50,7 +57,7 @@ game_type = {
 }
 
 
-def parse_row(row_elem):
+def parse_row(row_elem, known_teams):
     tds = row_elem.select('td')
 
     # Playoff rows have these header ones before them to indicate which
@@ -62,9 +69,9 @@ def parse_row(row_elem):
         # In the format SA 18-Mar-2017 4:30P
         date = parse_schedule_date(tds[1].contents[0].strip() + ' ' + tds[2].contents[0].strip())
         # practice and regular season
-        away = Team(name=parse_team(tds[3].contents[0]))
+        away = parse_team(tds[3].contents[0], known_teams)
         away_score = parse_score(tds[4].contents[0])
-        home = Team(name=parse_team(tds[5].contents[0]))
+        home = parse_team(tds[5].contents[0], known_teams)
         home_score = parse_score(tds[6].contents[0])
         rink = Rink(name=parse_rink(tds[7].contents[0]))
 
@@ -80,11 +87,11 @@ def parse_row(row_elem):
         return None
 
 
-def parse(soup):
+def parse(soup, known_teams):
     """Returns the season schedule that was able to be parsed"""
     parsed_matches = []
     rows = soup.select('table tr')
     # First 6 are headers
     for row in rows[6:-1]:
-        parsed_matches.append(parse_row(row))
+        parsed_matches.append(parse_row(row, known_teams))
     return parsed_matches

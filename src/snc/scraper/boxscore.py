@@ -12,6 +12,9 @@ from snc.scraper.match_summary import MatchSummary
 from snc.scraper.parsing_utils import capitalise, parse_date, parse_int
 from snc.scraper.penalty import Penalty
 from snc.scraper.players import Goalie, Player
+from snc.scraper.teams import Team
+from snc.scraper.division import Division
+from snc.scraper.rink import Rink
 
 
 ################################################################################
@@ -19,21 +22,19 @@ from snc.scraper.players import Goalie, Player
 ################################################################################
 
 
-def parse_teams(elem):
+def parse_teams(elem, known_teams):
     """Returns the teams involved in the match"""
     cell = elem.select('tr')[1:2][0]
-    away = capitalise(cell
-                      .contents[1]
-                      .select('font')[0]
-                      .contents[0]
-                      .contents[0]
-                      .strip())
-    home = capitalise(cell
-                      .contents[4]
-                      .select('font')[0]
-                      .contents[0]
-                      .contents[0]
-                      .strip())
+    away = cell.contents[1].select('font')[0].contents[0].contents[0].strip()
+    if known_teams[away.lower()] is not None:
+        away = known_teams[away.lower()]
+    else:
+        away = Team(name=capitalise(away), division=Division(name='Unknown'))
+    home = cell.contents[4].select('font')[0].contents[0].contents[0].strip()
+    if known_teams[home.lower()] is not None:
+        home = known_teams[home.lower()]
+    else:
+        home = Team(name=capitalise(home), division=Division(name='Unknown'))
     return {'away': away, 'home': home}
 
 
@@ -154,9 +155,9 @@ def parse_scores(by_period_elem, away, home):
     #    if the information didn't match up. If there is more in
     #    tables than up top, omit the tables
     by_period = parse_by_period(by_period_elem.select('tr'))
-    away_count = reduce((lambda x, y: x + y), by_period[away.lower()].values())
-    home_count = reduce((lambda x, y: x + y), by_period[home.lower()].values())
-    return {away.lower(): away_count, home.lower(): home_count}
+    away_count = reduce((lambda x, y: x + y), by_period[away.name.lower()].values())
+    home_count = reduce((lambda x, y: x + y), by_period[home.name.lower()].values())
+    return {away.name.lower(): away_count, home.name.lower(): home_count}
 
 
 def parse_shots(elem):
@@ -199,7 +200,7 @@ def parse_start(date_str, time_str):
 
 def parse_rink(rink_str):
     """Returns the rink the match was played at"""
-    return rink_str.split(' ')[0].strip()
+    return Rink(name=rink_str.split(' ')[0].strip())
 
 
 def parse_penalties(elem):
@@ -294,11 +295,11 @@ def parse_goalies(elem):
     return goalies
 
 
-def parse_page(soup):
+def parse_page(soup, known_teams):
     """Returns a MatchSummary object that represents the given box score page"""
     tables = soup.select('table.boxscores')
     try:
-        teams = parse_teams(tables[0])
+        teams = parse_teams(tables[0], known_teams)
         away = teams['away']
         home = teams['home']
     except IndexError:
@@ -329,8 +330,8 @@ def parse_page(soup):
                         rink=rink,
                         away=away,
                         home=home,
-                        away_score=score[away.lower()],
-                        home_score=score[home.lower()],
+                        away_score=score[away.name.lower()],
+                        home_score=score[home.name.lower()],
                         goals=goals,
                         shots=shots_on_goal,
                         power_plays=power_plays,
