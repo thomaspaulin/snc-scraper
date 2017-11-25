@@ -3,6 +3,10 @@
 
 Scraping the Auckland SNC Hockey website one symbol at a time. (http://www.aucklandsnchockey.com)
 
+## Foreword
+At the time of writing this all the scraping is done in Beautiful Soup 4. There are plans to move it to use Scrapy
+later down the lines.
+
 ## Setup
 This repository uses Scrapy and Python3. To get set up do the following:
 
@@ -12,6 +16,9 @@ This repository uses Scrapy and Python3. To get set up do the following:
 4. `cd` into this repo
 5. Run `pip install -r requirements.txt`
 6. Write awesome code
+
+## Running
+`python src/main.py` (builds not yet implemented)
 
 ## Scraping in the REPL
 `from bs4 import BeautifulSoup`

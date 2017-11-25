@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List
 
 """
 For parsing
@@ -13,7 +14,7 @@ requests are made
 # TODO ADD selectedMonth=3&selectedYear=2017 to get the month of interest page
 
 
-def parse_boxscore_urls(soup, base_url):
+def parse_boxscore_urls(soup, base_url) -> List[str]:
     """Returns the boxscore URLs for all those matches with them
 
     Note: To use a selectedYear that is not the current season's year you must
@@ -35,7 +36,7 @@ def parse_boxscore_urls(soup, base_url):
     ]
 
 
-def get_schedule_urls(year=datetime.utcnow().year, start_month=1, end_month=12):
+def get_schedule_urls(year=datetime.utcnow().year, start_month=1, end_month=12) -> List[str]:
     """
     Returns the URLs of each schedule page up to the given date's month
 

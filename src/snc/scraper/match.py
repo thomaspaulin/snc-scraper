@@ -1,7 +1,11 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from enum import Enum
 
+import pytz
+
 import snc.scraper.parsing_utils as util
+from snc.scraper.rink import Rink
+from snc.scraper.team import Team
 
 
 class MatchType(Enum):
@@ -27,14 +31,17 @@ class Match:
     """
     def __init__(self,
                  *,
-                 game_type=MatchType.REGULAR_SEASON,
-                 season=datetime.utcnow().year,
-                 start=datetime.utcnow(),
-                 away,
-                 home,
-                 away_score=None,
-                 home_score=None,
-                 rink):
+                 game_type: MatchType =MatchType.REGULAR_SEASON,
+                 season: int =datetime.utcnow().year,
+                 start: datetime =datetime.utcnow(),
+                 division_name: str = None,
+                 away: Team,
+                 home: Team,
+                 away_score: int = None,
+                 home_score: int = None,
+                 rink: Rink):
+
+        now = datetime.utcnow()
         if type(game_type) is str:
             for name, value in [(e.name, e.value) for e in MatchType]:
                 if value == game_type:
@@ -49,11 +56,42 @@ class Match:
             self.start = util.parse_date(start, '%Y-%m-%dT%H:%M:%SZ')
         else:
             self.start = start
+        if start + timedelta(hours=1) < now.replace(tzinfo=pytz.UTC):
+            self.status = "Over"
+        elif start <= now.replace(tzinfo=pytz.UTC) and start + timedelta(hours=1) <= now.replace(tzinfo=pytz.UTC):
+            self.status = "Underway"
+        else:
+            self.status = "Upcoming"
         self.away = away
         self.home = home
+        if division_name is not None:
+            self.division_name = division_name
+        elif away.division_name is not None:
+            self.division_name = away.division_name
+        elif home.division_name is not None:
+            self.division_name = home.division_name
+        else:
+            self.division_name = 'Unknown'
         self.away_score = away_score
         self.home_score = home_score
         self.rink = rink
+
+    def dump(self):
+        time = datetime.strftime(self.start, '%Y-%m-%dT%H:%M:%SZ')
+        return {'start': time,
+                'season': self.season,
+                'status': self.status,
+                'division': self.division_name,
+                'away': self.away.dump(),
+                'home': self.home.dump(),
+                'awayScore': self.away_score,
+                'homeScore': self.home_score,
+                'rink': self.rink.dump()}
+
+    @staticmethod
+    def load(json):
+        # todo
+        pass
 
     def __str__(self):
         time = datetime.strftime(self.start, '%Y-%m-%dT%H:%M:%SZ')
