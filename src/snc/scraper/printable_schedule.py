@@ -2,7 +2,6 @@ import bs4
 
 from snc.scraper.match import Match, MatchType
 from snc.scraper.parsing_utils import parse_schedule_date
-from snc.scraper.division import Division
 from snc.scraper.rink import Rink
 from snc.scraper.teams import Team
 
@@ -41,7 +40,7 @@ def parse_team(team_elem, known_teams):
     except KeyError:
         print("The server does not know about team {}.".format(name))
         return Team(name=name,
-                    division=Division(name='Unknown'))
+                    division_name='Unknown')
 
 
 def parse_rink(rink_elem):

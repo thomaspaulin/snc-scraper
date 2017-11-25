@@ -5,9 +5,10 @@ import snc.scraper.scraper as bs_scraper
 from snc.scraper.constants import *
 from snc.scraper.teams import Team
 from snc.scraper.division import Division
+from typing import Dict
 
 
-def get_known_teams():
+def get_known_teams() -> Dict[str, Team]:
     r = requests.get("{}/teams".format(API_URL))
     if r.status_code is not 200:
         return {}
@@ -18,7 +19,7 @@ def get_known_teams():
     return t
 
 
-def get_known_divisions():
+def get_known_divisions() -> Dict[str, Division]:
     r = requests.get("{}/divisions".format(API_URL))
     if r.status_code is not 200:
         return {}

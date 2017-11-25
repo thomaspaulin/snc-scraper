@@ -1,5 +1,9 @@
 import time
 from enum import Enum
+from typing import List
+
+from snc.scraper.players import Player
+from snc.scraper.team import Team
 
 
 class Goal:
@@ -17,12 +21,13 @@ class Goal:
     """
     def __init__(self,
                  *,
-                 goal_type,
-                 team,
-                 period,
-                 goal_time,
-                 scorer,
-                 assisted_by=None):
+                 goal_type: GoalType,
+                 team: str,
+                 period: int,
+                 goal_time: int,
+                 scorer: str,
+                 assisted_by: List[str]=None):
+        # todo type the parameters to Team and Player rather than str
         self.type = goal_type
         self.period = period
         self.team = team

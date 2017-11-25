@@ -19,12 +19,12 @@ class Team:
     def __init__(self,
                  *,
                  name,
-                 division=None,
+                 division_name=None,
                  logo_url=None,
                  record=(0, 0, 0),
                  points=0):
         self.name = name
-        self.division = division
+        self.division_name = division_name
         self.logo_url = logo_url
         self.record = record
         if points > 0:
@@ -37,12 +37,8 @@ class Team:
             )
 
     def dump(self):
-        if self.division is None:
-            div = {}
-        else:
-            div = self.division.dump()
         return {'name': self.name,
-                'division': div,
+                'division': self.division_name,
                 'logoURL': self.logo_url}
 
     @staticmethod
@@ -52,7 +48,7 @@ class Team:
         except KeyError:
             logo_url = ''
         return Team(name=json['name'],
-                    division=Division.load(json['division']),
+                    division_name=json['divisionName'],
                     logo_url=logo_url)
 
     def __str__(self):

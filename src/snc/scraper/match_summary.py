@@ -1,3 +1,12 @@
+import datetime
+from typing import Dict
+
+from snc.scraper.goal import Goal
+from snc.scraper.penalty import Penalty
+from snc.scraper.players import Goalie, Player
+from snc.scraper.rink import Rink
+from snc.scraper.team import Team
+
 
 class MatchSummary:
     """Represents a match card and all the details that go with it. Includes all
@@ -23,18 +32,18 @@ class MatchSummary:
     """
     def __init__(self,
                  *,
-                 start,
-                 rink,
-                 away,
-                 home,
-                 away_score=0,
-                 home_score=0,
-                 goals=None,
-                 shots=None,
-                 power_plays=None,
-                 penalties=None,
-                 players=None,
-                 goalies=None):
+                 start: datetime,
+                 rink: Rink,
+                 away: Team,
+                 home: Team,
+                 away_score: int =0,
+                 home_score: int =0,
+                 goals: Dict[str, Goal]=None,
+                 shots: Dict=None,
+                 power_plays: Dict =None,
+                 penalties: Dict[str, Penalty] =None,
+                 players: Dict[str, Player]=None,
+                 goalies: Dict[str, Goalie]=None):
         self.start = start
         self.rink = rink
         self.away = away

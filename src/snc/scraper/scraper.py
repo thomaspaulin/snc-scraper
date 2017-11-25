@@ -2,6 +2,8 @@ from _datetime import datetime
 
 import json
 import logging
+from typing import Dict, List
+
 import pytz
 import requests
 from bs4 import BeautifulSoup
@@ -20,7 +22,7 @@ from snc.scraper.constants import *
 l = logging.getLogger('scraper')
 
 
-def scrape_everything(known_teams, known_divisions):
+def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, Division]) -> None:
     l.setLevel(logging.DEBUG)
     print('=============================================================================')
     print('SCRAPING START')
@@ -29,15 +31,15 @@ def scrape_everything(known_teams, known_divisions):
     soup = BeautifulSoup(res.text, 'lxml')
 
     # The select options all take the format of 'YYYY SNC Season'
-    season_str = '{} SNC Season'.format(datetime.utcnow().year)
+    season_str: str = '{} SNC Season'.format(datetime.utcnow().year)
     # Name of the <select> element who sets the season,
     # also used for the POST
-    selector_name = 'sel_ChildSeason'
+    selector_name: str = 'sel_ChildSeason'
 
     # These is only one thankfull but select returns a list, hence [0]
     select = soup.select('select[name={}]'.format(selector_name))[0]
 
-    season_id = None
+    season_id: str = None
 
     for child in select.find_all('option'):
         if len(child.contents) is 1 and child.contents is season_str:
@@ -56,29 +58,29 @@ def scrape_everything(known_teams, known_divisions):
     print('BEGIN SCRAPING: Teams')
     print('-----------------------------------------------------------------------------')
     teams_res = requests.get('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788')
-    parsed_teams = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
+    parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
     print(parsed_teams)
-
-    print('-----------------------------------------------------------------------------')
-    print('BEGIN SCRAPING: Schedule')
-    print('-----------------------------------------------------------------------------')
-    # SCHEDULE
-    printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
-    schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
-    print(schedule)
-
-    print('-----------------------------------------------------------------------------')
-    print('BEGIN SCRAPING: Schedule URLs')
-    print('-----------------------------------------------------------------------------')
-    # BOXSCORES
-    schedule_page_urls = sched.get_schedule_urls(start_month=9, end_month=9)
-    match_summaries = []
-    for schedule_page_url in schedule_page_urls:
-        schedule_page_res = requests.get(schedule_page_url)
-        boxscore_urls = sched.parse_boxscore_urls(BeautifulSoup(schedule_page_res.text, 'lxml'), BASE_URL)
-        for boxscore_url in boxscore_urls:
-            boxscore_res = requests.get(boxscore_url)
-            match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml'), known_teams))
+    #
+    # print('-----------------------------------------------------------------------------')
+    # print('BEGIN SCRAPING: Schedule')
+    # print('-----------------------------------------------------------------------------')
+    # # SCHEDULE
+    # printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
+    # schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
+    # print(schedule)
+    #
+    # print('-----------------------------------------------------------------------------')
+    # print('BEGIN SCRAPING: Schedule URLs')
+    # print('-----------------------------------------------------------------------------')
+    # # BOXSCORES
+    # schedule_page_urls = sched.get_schedule_urls(start_month=9, end_month=9)
+    # match_summaries = []
+    # for schedule_page_url in schedule_page_urls:
+    #     schedule_page_res = requests.get(schedule_page_url)
+    #     boxscore_urls = sched.parse_boxscore_urls(BeautifulSoup(schedule_page_res.text, 'lxml'), BASE_URL)
+    #     for boxscore_url in boxscore_urls:
+    #         boxscore_res = requests.get(boxscore_url)
+    #         match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml'), known_teams))
 
     print('=============================================================================')
     print('SCRAPING FINISHED')
@@ -87,12 +89,13 @@ def scrape_everything(known_teams, known_divisions):
     print('=============================================================================')
     print('STARTING API REQUESTS')
     print('=============================================================================')
+    save_divisions()
     save_teams(parsed_teams)
-    save_matches(schedule)
-    save_summaries(match_summaries)
+    # save_matches(schedule)
+    # save_summaries(match_summaries)
 
 
-def test_api(known_teams, known_divisions):
+def test_api(known_teams: Dict[str, Team], known_divisions: Dict[str, Division]) -> None:
     l.setLevel(logging.DEBUG)
     snc_divisions = [
         Division(name='Python C'),
@@ -102,9 +105,9 @@ def test_api(known_teams, known_divisions):
 
     # todo create some teams, matches, match sumamries to test with
     snc_teams = [
-        Team(name='Python Bears', division=Division(name='Python C'), logo_url='test'),
-        Team(name='Python Grizzlies', division=Division(name='Python B'), logo_url='test2'),
-        Team(name='Python Hawks', division=Division(name='Python C'), logo_url='test3')
+        Team(name='Python Bears', division_name='Python C', logo_url='test'),
+        Team(name='Python Grizzlies', division_name='Python B', logo_url='test2'),
+        Team(name='Python Hawks', division_name='Python C', logo_url='test3')
     ]
     # saveTeams(snc_teams)
 
@@ -138,7 +141,7 @@ def test_api(known_teams, known_divisions):
     save_summaries(summaries)
 
 
-def submit(a_url, a_list):
+def submit(a_url, a_list) -> None:
     """Submits to the server. The list items must know how to serialise themselves"""
     for i in a_list:
         try:
@@ -150,24 +153,22 @@ def submit(a_url, a_list):
         requests.post(a_url, data=payload)
 
 
-def save_divisions(divisions=None):
-    pass
-#     divisions_url = '{}/divisions'.format(api_url)
-#     submit(divisions_url, divisions)
+def save_divisions(divisions: List[Division]=None) -> None:
+    divisions_url = '{}/divisions'.format(API_URL)
+    submit(divisions_url, divisions)
 
 
-def save_teams(teams=None):
-    pass
-#     teams_url = '{}/teams'.format(api_url)
-#     submit(teams_url, teams)
+def save_teams(teams: List[Team]=None) -> None:
+    teams_url = '{}/teams'.format(API_URL)
+    submit(teams_url, teams)
 
 
-def save_matches(schedule=None):
+def save_matches(schedule: List[Match]=None) -> None:
     matches_url = '{}/matches'.format(API_URL)
     submit(matches_url, schedule)
     # pass
 
 
-def save_summaries(summaries=None):
+def save_summaries(summaries: List[MatchSummary]=None) -> None:
     # not supported on server yet
     pass
