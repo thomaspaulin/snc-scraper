@@ -192,7 +192,7 @@ def test_api(known_teams: Dict[str, Team], known_divisions: Dict[str, Division])
     save_summaries(summaries)
 
 
-def submit(a_url, a_list) -> Response:
+def submit(a_url, a_list) -> None:
     """Submits to the server. The list items must know how to serialise themselves"""
     for i in a_list:
         try:
