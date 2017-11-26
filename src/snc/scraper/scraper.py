@@ -49,6 +49,8 @@ def get_known_divisions() -> Dict[str, Division]:
 def scrape_everything() -> None:
     l.setLevel(logging.DEBUG)
     l.info('=============================================================================')
+    l.info('COMMENCING SCRAPING AT {} (UTC)'.format(datetime.utcnow()))
+    l.info('=============================================================================')
     l.info('FETCHING KNOWN TEAMS AND DIVISIONS')
     l.info('=============================================================================')
     known_teams = get_known_teams()
