@@ -205,6 +205,8 @@ def submit(a_url, a_list) -> Response:
         if r.status_code is not 200:
             l.fatal('Response status: {}'.format(r.status_code))
             l.fatal(r.json())
+            l.fatal('Payload was:')
+            l.fatal(payload)
             sys.exit()
 
 
