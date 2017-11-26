@@ -6,7 +6,9 @@ from typing import Dict, List
 
 import pytz
 import requests
+import sys
 from bs4 import BeautifulSoup
+from requests import Response
 
 import snc.scraper.boxscore as boxscore
 import snc.scraper.printable_schedule as printable
@@ -22,8 +24,49 @@ from snc.scraper.constants import *
 l = logging.getLogger('scraper')
 
 
-def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, Division]) -> None:
+def get_known_teams() -> Dict[str, Team]:
+    r = requests.get("{}/teams".format(API_URL))
+    if r.status_code is not 200:
+        return {}
+    t = {}
+    for json in r.json():
+        team = Team.load(json)
+        t[team.name.lower()] = team
+    return t
+
+
+def get_known_divisions() -> Dict[str, Division]:
+    r = requests.get("{}/divisions".format(API_URL))
+    if r.status_code is not 200:
+        return {}
+    d = {}
+    for json in r.json():
+        div = Division.load(json)
+        d[div.name.lower()] = div
+    return d
+
+
+def scrape_everything() -> None:
     l.setLevel(logging.DEBUG)
+    l.info('=============================================================================')
+    l.info('FETCHING KNOWN TEAMS AND DIVISIONS')
+    l.info('=============================================================================')
+    known_teams = get_known_teams()
+    l.debug('Known teams:')
+    l.debug(known_teams)
+    known_divisions = get_known_divisions()
+    l.debug('Known divisions')
+    l.debug(known_divisions)
+    l.info('=============================================================================')
+    l.info('SAVING DIVISIONS')
+    l.info('=============================================================================')
+    l.debug('Warning: Not parsing divisions, instead using A, B, and C')
+    div_a = Division(name="A")
+    div_b = Division(name="B")
+    div_c = Division(name="C")
+    save_divisions([div_a, div_b, div_c])
+    known_divisions = get_known_divisions()
+
     l.info('=============================================================================')
     l.info('SCRAPING START')
     l.info('=============================================================================')
@@ -36,7 +79,7 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     # also used for the POST
     selector_name: str = 'sel_ChildSeason'
 
-    # These is only one thankfull but select returns a list, hence [0]
+    # These is only one thankfully but select returns a list, hence [0]
     select = soup.select('select[name={}]'.format(selector_name))[0]
 
     season_id: str = None
@@ -59,7 +102,14 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     l.info('-----------------------------------------------------------------------------')
     teams_res = requests.get('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788')
     parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
+
+    l.info('=============================================================================')
+    l.info('SAVING TEAMS')
+    l.info('=============================================================================')
     l.debug(parsed_teams)
+    save_teams(parsed_teams)
+    known_teams = get_known_teams()
+
 
     l.info('-----------------------------------------------------------------------------')
     l.info('BEGIN SCRAPING: Schedule')
@@ -68,6 +118,10 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
     schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
     l.debug(schedule)
+    l.info('=============================================================================')
+    l.info('SAVING MATCHES')
+    l.info('=============================================================================')
+    save_matches(schedule)
 
     # l.info('-----------------------------------------------------------------------------')
     # l.info('BEGIN SCRAPING: Schedule URLs')
@@ -82,24 +136,14 @@ def scrape_everything(known_teams: Dict[str, Team], known_divisions: Dict[str, D
     #         boxscore_res = requests.get(boxscore_url)
     #         match_summaries.append(boxscore.parse_page(BeautifulSoup(boxscore_res.text, 'lxml'), known_teams))
 
-    l.info('=============================================================================')
-    l.info('SCRAPING FINISHED')
-    l.info('=============================================================================')
+    # l.info('=============================================================================')
+    # l.info('SAVING SUMMARIES')
+    # l.info('=============================================================================')
+    # save_summaries(match_summaries)
 
     l.info('=============================================================================')
-    l.info('STARTING API REQUESTS')
+    l.info('FINISHED')
     l.info('=============================================================================')
-    l.debug('Warning: Not parsing divisions, instead using A, B, and C')
-    save_divisions([
-        Division(name="A"),
-        Division(name="B"),
-        Division(name="C"),
-    ])
-    l.debug('Saving teams')
-    save_teams(parsed_teams)
-    l.debug('Saving schedule')
-    save_matches(schedule)
-    # save_summaries(match_summaries)
 
 
 def test_api(known_teams: Dict[str, Team], known_divisions: Dict[str, Division]) -> None:
@@ -157,7 +201,13 @@ def submit(a_url, a_list) -> None:
             print('Submit called on a None type')
             payload = {}
         l.debug(payload)
-        requests.post(a_url, data=payload)
+        r = requests.post(a_url, data=payload)
+        if r.status_code is not 200:
+            l.fatal('Response status: {}'.format(r.status_code))
+            l.fatal(r.json())
+            l.fatal('Payload was:')
+            l.fatal(payload)
+            sys.exit()
 
 
 def save_divisions(divisions: List[Division]=None) -> None:

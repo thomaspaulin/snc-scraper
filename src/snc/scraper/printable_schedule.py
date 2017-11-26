@@ -92,5 +92,7 @@ def parse(soup, known_teams):
     rows = soup.select('table tr')
     # First 6 are headers
     for row in rows[6:-1]:
-        parsed_matches.append(parse_row(row, known_teams))
+        m = parse_row(row, known_teams)
+        if m is not None:
+            parsed_matches.append(m)
     return parsed_matches

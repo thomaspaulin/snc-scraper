@@ -1,16 +1,8 @@
 {
   "name": "snc-scraper",
-  "description": "",
-  "scripts": {
-  },
-  "env": {
-  },
-  "formation": {
-  },
+  "description": "Scrapes the Auckland SNC hockey website",
+  "image": "heroku/python",
   "addons": [
-
-  ],
-  "buildpacks": [
 
   ]
 }
