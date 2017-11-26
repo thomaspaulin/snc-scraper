@@ -12,12 +12,7 @@ import snc.scraper.teams
 
 ################################################
 # TODO
-# 0. Use BeautifulSoup only to get the sites and parse.
-#
-# 1. Have Scrapy download the schedule and team pages
-# 2. Have Scrapy parse the boxscore URLs then crawl the response
-# 3. Call scripts that run the created parsers outside of Scrapy, at a different
-#   pipeline step
+# 0. Get the teams and divisions on server here?
 ################################################
 
 def parse_printable_schedule(response):
