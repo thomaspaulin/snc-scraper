@@ -1,25 +1,21 @@
-from _datetime import datetime
-
 import json
 import logging
+import sys
+from _datetime import datetime
 from typing import Dict, List
 
 import pytz
 import requests
-import sys
 from bs4 import BeautifulSoup
-from requests import Response
 
-import snc.scraper.boxscore as boxscore
 import snc.scraper.printable_schedule as printable
-import snc.scraper.schedule as sched
 import snc.scraper.teams as teams
+from snc.scraper.constants import *
 from snc.scraper.division import Division
 from snc.scraper.match import Match, MatchType
 from snc.scraper.match_summary import MatchSummary
 from snc.scraper.rink import Rink
 from snc.scraper.team import Team
-from snc.scraper.constants import *
 
 l = logging.getLogger('scraper')
 
@@ -194,7 +190,7 @@ def test_api(known_teams: Dict[str, Team], known_divisions: Dict[str, Division])
     save_summaries(summaries)
 
 
-def submit(a_url, a_list) -> None:
+def submit(a_url: str, a_list: List) -> None:
     """Submits to the server. The list items must know how to serialise themselves"""
     for i in a_list:
         try:
