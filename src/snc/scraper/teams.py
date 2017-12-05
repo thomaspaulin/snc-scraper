@@ -1,7 +1,11 @@
-import snc.scraper.parsing_utils as util
-from snc.scraper.team import Team
-from snc.scraper.division import Division
 from typing import Dict, List
+
+import cloudinary.uploader
+import requests
+
+import snc.scraper.parsing_utils as util
+from snc.scraper.division import Division
+from snc.scraper.team import Team
 
 """
 # For parsing
@@ -38,7 +42,12 @@ def parse_team(team_elem, division_name: str, known_teams: Dict[str, Team]) -> T
     record = parse_record(rows[1].select('td')[1])
     # row 3 onwards are the awards and special notes including the title and a
     # row for an empty div
-    return Team(name=name, division_name=division_name, logo_url=logo_url, record=record)
+
+    url = cloudinary.CloudinaryImage('team-logos/' + name).url
+    res = requests.head(url)
+    if res.status_code == 404:
+        url = cloudinary.uploader.upload(logo_url, public_id=str('team-logos/' + name))['url']
+    return Team(name=name, division_name=division_name, logo_url=url, record=record)
 
 
 def parse_division(header_elem, known_divisions: Dict[str, Division]) -> Division:
