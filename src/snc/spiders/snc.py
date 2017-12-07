@@ -8,12 +8,12 @@ import snc.scraper.boxscore
 import snc.scraper.printable_schedule
 import snc.scraper.schedule
 import snc.scraper.teams
-
-
 ################################################
 # TODO
 # 0. Get the teams and divisions on server here?
 ################################################
+from snc.scraper.constants import LEAGUES_URL, TEAMS_URL, PRINTABLE_SCHEDULE_URL, SCHEDULES_URL
+
 
 def parse_printable_schedule(response):
     schedule = snc.scraper.printable_schedule.parse(
@@ -34,11 +34,9 @@ def parse_boxscores(response):
 class SncSpider(Spider):
     name = "snc"
     allowed_domains = ["www.aucklandsnchockey.com"]
-    start_urls = [
-        'http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788'
-    ]
+    start_urls = [TEAMS_URL]
 
-    base_url = 'http://www.aucklandsnchockey.com/leagues/'
+    base_url = LEAGUES_URL
 
     def start_requests(self):
         for url in self.start_urls:
@@ -76,16 +74,13 @@ class SncSpider(Spider):
         # TODO is yield necessary?
 
         # Parse the schedule
-        Request('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1',
-                callback=parse_printable_schedule)
+        Request(PRINTABLE_SCHEDULE_URL, callback=parse_printable_schedule)
 
         # Parse the teams page
-        Request('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788',
-                callback=parse_team_page)
+        Request(TEAMS_URL, callback=parse_team_page)
 
         # Parse the box score URLs
-        Request('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341',
-                callback=self.parse_boxscore_urls)
+        Request(SCHEDULES_URL, callback=self.parse_boxscore_urls)
 
     def parse_boxscore_urls(self, response):
         urls = snc.scraper.schedule.parse_boxscore_urls(

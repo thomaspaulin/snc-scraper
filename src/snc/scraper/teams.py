@@ -4,6 +4,7 @@ import cloudinary.uploader
 import requests
 
 import snc.scraper.parsing_utils as util
+from snc.scraper.constants import BASE_URL
 from snc.scraper.division import Division
 from snc.scraper.team import Team
 
@@ -18,7 +19,7 @@ def parse_name(name_wrapper_elem) -> str:
 
 
 def parse_logo(img_wrapper_elem) -> str:
-    base_url = 'http://www.aucklandsnchockey.com/'
+    base_url = BASE_URL
     src = img_wrapper_elem.select('img')[0]['src']
     return str(base_url + src)
 

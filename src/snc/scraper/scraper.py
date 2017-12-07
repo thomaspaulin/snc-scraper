@@ -68,11 +68,11 @@ def scrape_everything() -> None:
     l.info('=============================================================================')
     l.info('SCRAPING START')
     l.info('=============================================================================')
-    res = requests.get('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341')
+    res = requests.get(SCHEDULES_URL)
     soup = BeautifulSoup(res.text, 'lxml')
 
     # The select options all take the format of 'YYYY SNC Season'
-    season_str: str = '{} SNC Season'.format(datetime.utcnow().year)
+    season_str: str = '{}'.format(datetime.utcnow().year)
     # Name of the <select> element who sets the season,
     # also used for the POST
     selector_name: str = 'sel_ChildSeason'
@@ -83,7 +83,7 @@ def scrape_everything() -> None:
     season_id: str = None
 
     for child in select.find_all('option'):
-        if len(child.contents) is 1 and child.contents is season_str:
+        if len(child.contents) is 1 and child.contents[0].startswith(season_str):
             season_id = child['value']
 
     # TODO EXPORT THE SEASON ID HERE FOR OTHERS TO KNOW ABOUT THEN IMPLEMENT THIS READING THE EXPORTED SEASONS (AS A CACHE)
@@ -91,14 +91,14 @@ def scrape_everything() -> None:
     # then start parsing
     l.info('Using season with ID: {}'.format(season_id))
     if season_id is not None:
-        requests.post('http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341',
-                      data={selector_name, season_id})
+        requests.post(SCHEDULES_URL,
+                      data={selector_name.encode(), season_id.encode()})
 
     # TEAMS
     l.info('-----------------------------------------------------------------------------')
     l.info('BEGIN SCRAPING: Teams')
     l.info('-----------------------------------------------------------------------------')
-    teams_res = requests.get('http://www.aucklandsnchockey.com/leagues/teams.cfm?leagueID=23341&clientID=5788')
+    teams_res = requests.get(TEAMS_URL)
     parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
 
     l.info('=============================================================================')
@@ -113,7 +113,7 @@ def scrape_everything() -> None:
     l.info('BEGIN SCRAPING: Schedule')
     l.info('-----------------------------------------------------------------------------')
     # SCHEDULE
-    printable_res = requests.get('http://www.aucklandsnchockey.com/leagues/print_schedule.cfm?leagueID=23341&clientID=5788&teamID=0&mixed=1')
+    printable_res = requests.get(PRINTABLE_SCHEDULE_URL)
     schedule = printable.parse(BeautifulSoup(printable_res.text, 'lxml'), known_teams)
     l.debug(schedule)
     l.info('=============================================================================')

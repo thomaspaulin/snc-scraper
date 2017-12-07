@@ -1,6 +1,8 @@
 from datetime import datetime
 from typing import List
 
+from snc.scraper.constants import LEAGUES_URL
+
 """
 For parsing
 http://www.aucklandsnchockey.com/leagues/schedules.cfm?clientid=5788&leagueid=23341
@@ -42,14 +44,14 @@ def get_schedule_urls(year=datetime.utcnow().year, start_month=1, end_month=12) 
 
     NB: Day is not supported by the website, only month and year
     """
-    template = 'http://www.aucklandsnchockey.com/leagues/schedules.cfm' \
+    template = '{}/schedules.cfm' \
                '?selectedMonth={}' \
                '&selectedYear={}' \
-               '&leagueID=23341' \
-               '&clientID=5788'
+               '&leagueID=23670' \
+               '&clientID=5757'
     if start_month > end_month:
         raise ValueError('start_month must be less than or equal to end_month')
     urls = []
     for month in range(start_month, end_month + 1):
-        urls.append(template.format(month, year))
+        urls.append(template.format(LEAGUES_URL, month, year))
     return urls
