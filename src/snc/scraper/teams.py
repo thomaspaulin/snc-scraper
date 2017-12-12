@@ -44,10 +44,10 @@ def parse_team(team_elem, division_name: str, known_teams: Dict[str, Team]) -> T
     # row 3 onwards are the awards and special notes including the title and a
     # row for an empty div
 
-    url = cloudinary.CloudinaryImage('team-logos/' + name).url
+    url = cloudinary.CloudinaryImage('team-logos/' + name.lower()).url
     res = requests.head(url)
     if res.status_code == 404:
-        url = cloudinary.uploader.upload(logo_url, public_id=str('team-logos/' + name))['url']
+        url = cloudinary.uploader.upload(logo_url, public_id=str('team-logos/' + name.lower()))['url']
     return Team(name=name, division_name=division_name, logo_url=url, record=record)
 
 
