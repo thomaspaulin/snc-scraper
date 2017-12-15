@@ -54,11 +54,21 @@ def parse_team(team_elem, division_name: str, known_teams: Dict[str, Team]) -> T
 def parse_division(header_elem, known_divisions: Dict[str, Division]) -> Division:
     """Returns the division parsed from the team page section header"""
     title: str = str(header_elem.select('b')[0].contents[0]).strip()
-    if not title.endswith('League Competition'):
-        #  a team row, not a division
-        return None
-    # title should look like `SNC - B League Competition`
-    name: str = str(title.split('-')[1].strip()[0:1]).strip()
+    try:
+        header_elem.select('td')[0].contents[0].contents[0].startswith('Division:')
+    except AttributeError:
+        return Division(name='Unknown')
+    # title should look like `SNC - B League Competition` for SNC
+    #                        `BHL - BACKYARD HOCKEY LEAGUE` for BHL
+    #                        `FHL - FRONTYARD HOCKEY LEAGUE` for FHL
+    div_title = title.split('-')
+    if div_title[0].strip() == 'SNC':
+        name: str = str(div_title[1].strip()[0:1]).strip()
+    elif div_title[0].strip() == 'BHL' or div_title[0].strip() == 'FHL':
+        name: str = str(div_title[0]).strip()
+    else:
+        return Division(name='Unknown')
+
     try:
         return known_divisions[name.lower()]
     except KeyError:
