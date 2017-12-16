@@ -12,6 +12,7 @@ import snc.scraper.printable_schedule as printable
 import snc.scraper.teams as teams
 from snc.scraper.constants import *
 from snc.scraper.division import Division
+from snc.scraper.league import League
 from snc.scraper.match import Match, MatchType
 from snc.scraper.match_summary import MatchSummary
 from snc.scraper.rink import Rink
@@ -29,6 +30,17 @@ def get_known_teams() -> Dict[str, Team]:
         team = Team.load(json)
         t[team.name.lower()] = team
     return t
+
+
+def get_known_leagues() -> Dict[str, League]:
+    r = requests.get("{}/leagues".format(API_URL))
+    if r.status_code is not 200:
+        return {}
+    l = {}
+    for json in r.json():
+        league = League.load(json)
+        l[league.name.lower()] = league
+    return l
 
 
 def get_known_divisions() -> Dict[str, Division]:
@@ -56,8 +68,15 @@ def scrape_everything() -> None:
     l.debug('Known divisions')
     l.debug(known_divisions)
     l.info('=============================================================================')
-    l.info('SAVING DIVISIONS')
+    l.info('SAVING LEAGUES AND DIVISIONS')
     l.info('=============================================================================')
+    l.debug('Warning: Not parsing leagues, instead using SNC, BHL, and FHL')
+    league_snc = League(name='SNC')
+    league_bhl = League(name='BHL')
+    league_fhl = League(name='FHL')
+    save_leagues([league_snc, league_bhl, league_fhl])
+    known_leagues = get_known_leagues()
+
     l.debug('Warning: Not parsing divisions, instead using A, B, and C')
     div_a = Division(name="A")
     div_b = Division(name="B")
@@ -99,7 +118,8 @@ def scrape_everything() -> None:
     l.info('BEGIN SCRAPING: Teams')
     l.info('-----------------------------------------------------------------------------')
     teams_res = requests.get(TEAMS_URL)
-    parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_divisions)
+    parsed_teams: List[Team] = teams.parse(BeautifulSoup(teams_res.text, 'lxml'), known_teams, known_leagues,
+                                           known_divisions)
 
     l.info('=============================================================================')
     l.info('SAVING TEAMS')
@@ -206,6 +226,11 @@ def submit(a_url: str, a_list: List) -> None:
             l.fatal('Payload was:')
             l.fatal(payload)
             sys.exit()
+
+
+def save_leagues(leagues: List[League] = None) -> None:
+    leagues_url = '{}/leagues'.format(API_URL)
+    submit(leagues_url, leagues)
 
 
 def save_divisions(divisions: List[Division]=None) -> None:

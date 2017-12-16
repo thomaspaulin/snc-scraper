@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+
 from pytz import timezone, utc
 
 
@@ -22,7 +23,7 @@ def parse_int(int_str, default) -> int:
         return default
 
 
-def parse_schedule_date(date_str) -> datetime:
+def parse_schedule_date(date_str) -> datetime or None:
     """Returns a date parsed from a date string in the format In the format
     SA 18-Mar-2017 4:30P. Dates parsed will be in UTC"""
     ds = date_str.strip() + 'M'
@@ -30,12 +31,19 @@ def parse_schedule_date(date_str) -> datetime:
     days = {
         'SA': 'Saturday',
         'SU': 'Sunday',
-        'MO': 'Monday'
+        'MO': 'Monday',
+        'TU': 'Tuesday',
+        'WE': 'Wednesday',  # this is a guess and has not yet been observed
+        'TH': 'Thursday',
+        'FR': 'Friday'
     }
     for day in days:
         if day in ds:
             ds = ds.replace(day, days[day])
-    date = tz.localize(datetime.strptime(ds, '%A %d-%b-%Y %I:%M%p'))
+    try:
+        date = tz.localize(datetime.strptime(ds, '%A %d-%b-%Y %I:%M%p'))
+    except ValueError:
+        return None
     return date.astimezone(utc)
 
 

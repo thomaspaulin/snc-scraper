@@ -3,7 +3,8 @@ class Team:
 
     Attributes:
         name                The team's name
-        division            The division the team is in
+        league_name         The league the team is in. e.g., SNC, BHL, FHL
+        division_name       The division the team is in
         logo_url            The URL of the team's logo
         record              The wins, loses, ties, of the team for the season
         points              How many points the team has. Based of their record
@@ -17,11 +18,13 @@ class Team:
     def __init__(self,
                  *,
                  name,
-                 division_name=None,
+                 league_name='Unknown',
+                 division_name='Unknown',
                  logo_url=None,
                  record=(0, 0, 0),
                  points=0):
         self.name = name
+        self.league_name = league_name
         self.division_name = division_name
         self.logo_url = logo_url
         self.record = record
@@ -36,6 +39,7 @@ class Team:
 
     def dump(self):
         return {'name': self.name,
+                'leagueName': self.league_name,
                 'divisionName': self.division_name,
                 'logoURL': self.logo_url}
 
@@ -44,12 +48,17 @@ class Team:
         try:
             logo_url: str = json['logoURL']
         except KeyError:
-            logo_url: str = ''
+            logo_url = ''
         try:
             div_name: str = json['divisionName']
         except KeyError:
-            div_name: str = 'Unknown'
+            div_name = 'Unknown'
+        try:
+            league_name: str = json['leagueName']
+        except KeyError:
+            league_name = 'Unknown'
         return Team(name=json['name'],
+                    league_name=league_name,
                     division_name=div_name,
                     logo_url=logo_url)
 
@@ -57,8 +66,9 @@ class Team:
         return '{} {}'.format(self.name, self.record)
 
     def __repr__(self):
-        return '{}, Division {}, {}, {} - {}pts'.format(
+        return '{}, {} Division {}, {}, {} - {}pts'.format(
                                         self.name,
+            self.league_name,
                                         self.division_name,
                                         self.logo_url,
                                         self.record,
