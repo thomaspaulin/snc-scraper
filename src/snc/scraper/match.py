@@ -12,6 +12,7 @@ class MatchType(Enum):
     PRACTICE = 'PR'
     REGULAR_SEASON = 'RS'
     PLAYOFF = 'PO'
+    EXHIBITION = 'EX'
 
 
 class Match:

@@ -6,6 +6,7 @@ import requests
 import snc.scraper.parsing_utils as util
 from snc.scraper.constants import BASE_URL
 from snc.scraper.division import Division
+from snc.scraper.league import League
 from snc.scraper.team import Team
 
 """
@@ -30,10 +31,10 @@ def parse_record(record_wrapper_elem) -> (int, int, int):
     return int(records[0]), int(records[1]), int(records[2])
 
 
-def parse_team(team_elem, division_name: str, known_teams: Dict[str, Team]) -> Team:
+def parse_team(team_elem, league_name: str, division_name: str, known_teams: Dict[str, Team]) -> Team:
     rows = team_elem.select('tr')
     # row 1 is logo, name, and links to stats, roster, and staff/personnel
-    name: str = util.capitalise(parse_name(rows[0].select('td')[1]))
+    name: str = util.capitalise(parse_name(rows[0].select('td')[1])).strip()
     try:
         return known_teams[name.lower()]
     except KeyError:
@@ -48,7 +49,20 @@ def parse_team(team_elem, division_name: str, known_teams: Dict[str, Team]) -> T
     res = requests.head(url)
     if res.status_code == 404:
         url = cloudinary.uploader.upload(logo_url, public_id=str('team-logos/' + name.lower()))['url']
-    return Team(name=name, division_name=division_name, logo_url=url, record=record)
+    return Team(name=name, league_name=league_name, division_name=division_name, logo_url=url, record=record)
+
+
+def parse_league(header_elem, known_leagues: Dict[str, League]) -> League:
+    # title should look like `SNC - B League Competition` for SNC
+    #                        `BHL - BACKYARD HOCKEY LEAGUE` for BHL
+    #                        `FHL - FRONTYARD HOCKEY LEAGUE` for FHL
+    tokens: List[str] = str(header_elem.select('b')[0].contents[0]).split('-')
+    name = tokens[0].strip()
+    try:
+        return known_leagues[name.lower()]
+    except KeyError:
+        print("The server does not know about league {}.".format(name))
+    return League(name=name)
 
 
 def parse_division(header_elem, known_divisions: Dict[str, Division]) -> Division:
@@ -76,14 +90,17 @@ def parse_division(header_elem, known_divisions: Dict[str, Division]) -> Divisio
     return Division(name=name)
 
 
-def parse(soup, known_teams: Dict[str, Team], known_divisions: Dict[str, Division]) -> List[Team]:
+def parse(soup, known_teams: Dict[str, Team], known_leagues: Dict[str, League], known_divisions: Dict[str, Division]) -> \
+List[Team]:
     """Returns the teams in the league that could be parsed"""
     parsed_teams = []
     team_elems = soup.select('div > table.boxscores')
     current_division = Division(name='Unknown')
+    current_league = League(name='Unknown')
     for elem in team_elems:
         if len(elem.select('font')) is not 0:
+            current_league = parse_league(elem, known_leagues)
             current_division = parse_division(elem, known_divisions)
         else:
-            parsed_teams.append(parse_team(elem, current_division.name, known_teams))
+            parsed_teams.append(parse_team(elem, current_league.name, current_division.name, known_teams))
     return parsed_teams

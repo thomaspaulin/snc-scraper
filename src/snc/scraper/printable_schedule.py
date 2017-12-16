@@ -24,7 +24,7 @@ def parse_score(score_elem):
             return int(score_elem.strip()[:-2].strip())
         except ValueError:
             # no score
-            return -1
+            return 0
 
 
 def parse_team(team_elem, known_teams):
@@ -38,6 +38,9 @@ def parse_team(team_elem, known_teams):
     try:
         return known_teams[name.lower()]
     except KeyError:
+        if name == 'TBD' or name.endswith('Seed') or len(name) is 0:
+            return Team(name='Unknown',
+                        division_name='Unknown')
         print("The server does not know about team {}.".format(name))
         return Team(name=name,
                     division_name='Unknown')
@@ -46,17 +49,18 @@ def parse_team(team_elem, known_teams):
 def parse_rink(rink_elem):
     if isinstance(rink_elem, bs4.element.Tag):
         rink_elem = rink_elem.contents[0]
-    return rink_elem.strip()[:-5]
+    return rink_elem.strip()
 
 
 game_type = {
     'PR': MatchType.PRACTICE,
     'RS': MatchType.REGULAR_SEASON,
-    'PO': MatchType.PLAYOFF
+    'PO': MatchType.PLAYOFF,
+    'EX': MatchType.EXHIBITION
 }
 
 
-def parse_row(row_elem, known_teams):
+def parse_row(row_elem, known_teams) -> Match or None:
     tds = row_elem.select('td')
 
     # Playoff rows have these header ones before them to indicate which
@@ -64,15 +68,24 @@ def parse_row(row_elem, known_teams):
     is_match_row = len(tds[0].select('img')) is 0
     if is_match_row:
         game_type_acronym = tds[0].select('font')[0].contents[0].strip()
+        if game_type[game_type_acronym] is MatchType.EXHIBITION or game_type[game_type_acronym] is MatchType.PRACTICE:
+            # Exhibition and practice matches are a pain that I don't want to deal with right now (2017-12-16)
+            return None
 
         # In the format SA 18-Mar-2017 4:30P
         date = parse_schedule_date(tds[1].contents[0].strip() + ' ' + tds[2].contents[0].strip())
+        if date is None:
+            # Happens when the date is TBA
+            return None
         # practice and regular season
         away = parse_team(tds[3].contents[0], known_teams)
         away_score = parse_score(tds[4].contents[0])
         home = parse_team(tds[5].contents[0], known_teams)
         home_score = parse_score(tds[6].contents[0])
         rink = Rink(name=parse_rink(tds[7].contents[0]))
+
+        if away.name is 'Unknown' and home.name is 'Unknown':
+            return None
 
         return Match(game_type=game_type[game_type_acronym],
                      season=date.year,
